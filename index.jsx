@@ -40,6 +40,7 @@ module.exports = class CSSToggler extends Plugin {
     pluginWillUnload () {
         this.injections.forEach(id => uninject(id));
 
+        powercord.api.settings.unregisterSettings('css-toggler');
         powercord.api.commands.unregisterCommand('snippet');
     }
 
@@ -94,7 +95,7 @@ module.exports = class CSSToggler extends Plugin {
                   return false;
                 }
 
-                return subcommand.autocomplete(args.slice(1), this.settings);
+                return subcommand.autocomplete(args.slice(1), this);
             }
         });
     }
@@ -103,6 +104,23 @@ module.exports = class CSSToggler extends Plugin {
         inject(id, ...args);
 
         this.injections.push(id);
+    }
+
+    _getSnippets () {
+        const snippets = {};
+        const snippetMatches = this.moduleManager._quickCSS.matchAll(/(\/[*]{2}[^]+?Snippet ID: \d+\n \*\/)\n([^]+?)\n(\/[*]{2} \d+ \*\/)/g);
+
+        for (const snippet of snippetMatches) {
+            const [ _, header, content, footer ] = snippet;
+
+            if (!content.includes('Snippet ID:')) {
+                const id = header.match(/Snippet ID: (\d+)/)[1];
+
+                snippets[id] = { header, content, footer };
+            }
+        }
+
+        return snippets;
     }
 
     _removeSnippet (messageId) {
@@ -126,8 +144,8 @@ module.exports = class CSSToggler extends Plugin {
 
         if (snippetParts.header && snippetParts.content && snippetParts.footer) {
             quickCSS = quickCSS.replace(`${snippetParts.header}${snippetParts.content}${snippetParts.footer}`, '');
-        }
 
-        this.moduleManager._saveQuickCSS(quickCSS);
+            this.moduleManager._saveQuickCSS(quickCSS);
+        }
     }
 }
