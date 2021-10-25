@@ -6,6 +6,7 @@ const { findInReactTree } = require('powercord/util');
 
 const i18n = require('./i18n');
 const commands = require('./commands');
+const Settings = require('./components/Settings');
 const SnippetButton = require('./components/SnippetButton');
 
 module.exports = class CSSToggler extends Plugin {
@@ -26,6 +27,11 @@ module.exports = class CSSToggler extends Plugin {
         // TODO: Name different snippets differently (and potentially descriptions) for easier access
 
         powercord.api.i18n.loadAllStrings(i18n);
+        powercord.api.settings.registerSettings('css-toggler', {
+            category: this.entityID,
+            label: 'CSS Toggler',
+            render: Settings
+        });
 
         this.patchSnippetButton();
         this.registerMainCommand();
@@ -45,7 +51,7 @@ module.exports = class CSSToggler extends Plugin {
           return res;
         }
 
-        let __$oldSnippetButton = findInReactTree(res.props.children, n => n.type?.name === 'SnippetButton');
+        const __$oldSnippetButton = findInReactTree(res.props.children, n => n.type?.name === 'SnippetButton');
         if (__$oldSnippetButton) {
             const buttons = res.props.children;
             const snippetButtonIndex = buttons.findIndex(n => n.type?.name === 'SnippetButton');
