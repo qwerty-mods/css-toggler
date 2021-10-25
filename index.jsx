@@ -1,10 +1,12 @@
 const { Plugin } = require('powercord/entities');
-const { getModule } = require('powercord/webpack');
+const { React, getModule } = require('powercord/webpack');
 const { SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
 const { inject, uninject } = require('powercord/injector');
 const { findInReactTree } = require('powercord/util');
 
+const i18n = require('./i18n');
 const commands = require('./commands');
+const SnippetButton = require('./components/SnippetButton');
 
 module.exports = class CSSToggler extends Plugin {
     constructor () {
@@ -22,6 +24,8 @@ module.exports = class CSSToggler extends Plugin {
         // TODO: Enabling snippets via command or settings
         // TODO: Disabling ^^
         // TODO: Name different snippets differently (and potentially descriptions) for easier access
+
+        powercord.api.i18n.loadAllStrings(i18n);
 
         this.patchSnippetButton();
         this.registerMainCommand();
@@ -41,9 +45,12 @@ module.exports = class CSSToggler extends Plugin {
           return res;
         }
 
-        const __$oldSnippetButton = findInReactTree(res.props.children, n => n.type?.name === 'SnippetButton');
+        let __$oldSnippetButton = findInReactTree(res.props.children, n => n.type?.name === 'SnippetButton');
         if (__$oldSnippetButton) {
-            this.log(__$oldSnippetButton);
+            const buttons = res.props.children;
+            const snippetButtonIndex = buttons.findIndex(n => n.type?.name === 'SnippetButton');
+
+            buttons.splice(snippetButtonIndex, 1, <SnippetButton {...__$oldSnippetButton.props} moduleManager={this.moduleManager} main={this} />);
         }
 
         return res;
@@ -90,5 +97,31 @@ module.exports = class CSSToggler extends Plugin {
         inject(id, ...args);
 
         this.injections.push(id);
+    }
+
+    _removeSnippet (messageId) {
+        let quickCSS = this.moduleManager._quickCSS;
+        const snippets = quickCSS.split(/(\/\*\*[^]+?\*\/)/).filter(c => c !== '\n\n' && c !== '');
+
+        const snippetParts = {
+            header: '',
+            content: '',
+            footer: ''
+        };
+
+        snippets.forEach((line, index) => {
+            if (line.includes(`Snippet ID: ${messageId}`)) {
+                snippetParts.header = line;
+                snippetParts.content = snippets[index + 1];
+            } else if (line.match(/\/\*\* \d+ \*\//)) {
+                snippetParts.footer = line;
+            }
+        });
+
+        if (snippetParts.header && snippetParts.content && snippetParts.footer) {
+            quickCSS = quickCSS.replace(`${snippetParts.header}${snippetParts.content}${snippetParts.footer}`, '');
+        }
+
+        this.moduleManager._saveQuickCSS(quickCSS);
     }
 }
