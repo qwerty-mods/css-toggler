@@ -9,11 +9,29 @@ const commands = require('./commands');
 const Settings = require('./components/Settings');
 const SnippetButton = require('./components/SnippetButton');
 
+const fs = require('fs');
+const path = require('path');
+const moment = getModule([ 'momentProperties' ], false);
+
+const userStore = getModule([ 'getNullableCurrentUser' ], false);
+const userProfileStore = getModule([ 'fetchProfile' ], false);
+
 module.exports = class CSSToggler extends Plugin {
     constructor () {
         super();
 
         this.injections = [];
+        this.snippetsCache = path.join(__dirname, '.cache', 'snippets.json');
+    }
+
+    get cachedSnippets () {
+        if (!fs.existsSync(this.snippetsCache)) {
+            fs.writeFileSync(this.snippetsCache, JSON.stringify('[]', null, 2));
+        }
+
+        const cachedSnippets = JSON.parse(fs.readFileSync(this.snippetsCache, 'utf8'));
+
+        return cachedSnippets;
     }
 
     get moduleManager () {
@@ -115,8 +133,10 @@ module.exports = class CSSToggler extends Plugin {
 
             if (!content.includes('Snippet ID:')) {
                 const id = header.match(/Snippet ID: (\d+)/)[1];
+                const appliedString = header.match(/(\d+ \w+ \d+(.+ )?\d+:\d+:\d+)/)[1];
+                const appliedTimestamp = moment(appliedString, 'DD MMM YYYY HH:mm:ss').valueOf();
 
-                snippets[id] = { header, content, footer };
+                snippets[id] = { header, content, footer, timestamp: appliedTimestamp };
             }
         }
 
@@ -146,6 +166,42 @@ module.exports = class CSSToggler extends Plugin {
             quickCSS = quickCSS.replace(`${snippetParts.header}${snippetParts.content}${snippetParts.footer}`, '');
 
             this.moduleManager._saveQuickCSS(quickCSS);
+        }
+    }
+
+    async _toggleSnippet (messageId, enable) {
+        if (enable) {
+            const snippet = this.cachedSnippets.find(snippet => snippet.id === messageId);
+            const author = userStore.getUser(snippet.author) || await userProfileStore.getUser(snippet.author);
+
+            this.moduleManager._applySnippet({
+                author,
+                id: messageId,
+                content: `\`\`\`css\n${snippet.content}\n\`\`\``
+            });
+
+            const newSnippets = this.cachedSnippets.filter(snippet => snippet.id !== messageId);
+
+            fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2));
+        } else {
+            const snippets = this._getSnippets();
+
+            if (snippets[messageId] && !this.cachedSnippets.find(snippet => snippet.id === messageId)) {
+                const snippet = snippets[messageId];
+                snippet.author = snippet.header.match(/#\d{4} \((\d{16,20})\)/)[1];
+                snippet.id = messageId;
+
+                const newSnippets = [ ...this.cachedSnippets, {
+                    id: snippet.id,
+                    author: snippet.author,
+                    content: snippet.content,
+                    timestamp: snippet.timestamp
+                } ];
+
+                fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2));
+
+                this._removeSnippet(messageId);
+            }
         }
     }
 }
