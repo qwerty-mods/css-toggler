@@ -178,17 +178,20 @@ module.exports = class CSSToggler extends Plugin {
     async _toggleSnippet (messageId, enable) {
         if (enable) {
             const snippet = this.cachedSnippets.find(snippet => snippet.id === messageId);
-            const author = userStore.getUser(snippet.author) || await userProfileStore.getUser(snippet.author);
 
-            this.moduleManager._applySnippet({
-                author,
-                id: messageId,
-                content: `\`\`\`css\n${snippet.content}\n\`\`\``
-            });
+            if (snippet) {
+                const author = userStore.getUser(snippet.author) || await userProfileStore.getUser(snippet.author);
 
-            const newSnippets = this.cachedSnippets.filter(snippet => snippet.id !== messageId);
+                this.moduleManager._applySnippet({
+                    author,
+                    id: messageId,
+                    content: `\`\`\`css\n${snippet.content}\n\`\`\``
+                });
 
-            fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2));
+                const newSnippets = this.cachedSnippets.filter(snippet => snippet.id !== messageId);
+
+                fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2));
+            }
         } else {
             const snippets = this._getSnippets();
 
