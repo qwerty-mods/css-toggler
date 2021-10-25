@@ -8,9 +8,12 @@ module.exports = {
     }
 
     const cachedSnippets = main.cachedSnippets;
+    if (cachedSnippets.length === 0) {
+      return false;
+    }
 
     return {
-      commands: Object.values(cachedSnippets).filter(snippet => snippet.id.includes(args[0])).map(snippet => ({
+      commands: cachedSnippets.filter(snippet => snippet.id.includes(args[0])).map(snippet => ({
         command: snippet.id,
         description: snippet.content
       })),

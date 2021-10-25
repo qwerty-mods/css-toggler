@@ -21,12 +21,17 @@ module.exports = class CSSToggler extends Plugin {
         super();
 
         this.injections = [];
-        this.snippetsCache = path.join(__dirname, '.cache', 'snippets.json');
+        this.cacheFolder = path.join(__dirname, '.cache');
+        this.snippetsCache = path.join(this.cacheFolder, 'snippets.json');
     }
 
     get cachedSnippets () {
+        if (!fs.existsSync(this.cacheFolder)) {
+            fs.mkdirSync(this.cacheFolder);
+        }
+
         if (!fs.existsSync(this.snippetsCache)) {
-            fs.writeFileSync(this.snippetsCache, JSON.stringify('[]', null, 2));
+            fs.writeFileSync(this.snippetsCache, '[]');
         }
 
         const cachedSnippets = JSON.parse(fs.readFileSync(this.snippetsCache, 'utf8'));
@@ -124,6 +129,7 @@ module.exports = class CSSToggler extends Plugin {
         this.injections.push(id);
     }
 
+    // TODO: Move these utility methods over to a separate file for managing snippets
     _getSnippets () {
         const snippets = {};
         const snippetMatches = this.moduleManager._quickCSS.matchAll(/(\/[*]{2}[^]+?Snippet ID: \d+\n \*\/)\n([^]+?)\n(\/[*]{2} \d+ \*\/)/g);
