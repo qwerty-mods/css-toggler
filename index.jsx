@@ -93,7 +93,7 @@ module.exports = class CSSToggler extends Plugin {
         powercord.api.commands.registerCommand({
             command: 'snippet',
             description: 'Utility commands to manage your snippets with ease',
-            usage: '{c} <add, delete, enable, disable> <id>',
+            usage: '{c} <subcommand> <id>',
             executor: (args) => {
                 const subcommand = commands[args[0]];
                 if (!subcommand) {
