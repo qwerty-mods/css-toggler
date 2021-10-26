@@ -1,7 +1,7 @@
 module.exports = {
   command: 'enable',
   description: 'Enable an existing snippet',
-  executor: ([ id ], main) => main.snippetManager._toggleSnippet(id, true),
+  executor: ([ id ], main) => main.snippetManager.toggleSnippet(id, true),
   autocomplete: (args, main) => {
     if (args.length > 1) {
       return false;

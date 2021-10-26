@@ -28,7 +28,7 @@ module.exports = class SnippetManager {
     return cachedSnippets;
   }
 
-  _getSnippets () {
+  getSnippets () {
     const snippets = {};
     const snippetMatches = this.main.moduleManager._quickCSS.matchAll(/(\/[*]{2}[^]+?Snippet ID: \d+\n \*\/)\n([^]+?)\n(\/[*]{2} \d+ \*\/)/g);
 
@@ -47,7 +47,7 @@ module.exports = class SnippetManager {
     return snippets;
   }
 
-  _removeSnippet (messageId) {
+  removeSnippet (messageId) {
     let quickCSS = this.main.moduleManager._quickCSS;
     const snippets = quickCSS.split(/(\/\*\*[^]+?\*\/)/).filter(c => c !== '\n\n' && c !== '');
 
@@ -73,7 +73,7 @@ module.exports = class SnippetManager {
     }
   }
 
-  async _toggleSnippet (messageId, enable) {
+  async toggleSnippet (messageId, enable) {
     if (enable) {
       const snippet = this.cachedSnippets.find(snippet => snippet.id === messageId);
 
@@ -91,7 +91,7 @@ module.exports = class SnippetManager {
         fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2));
       }
     } else {
-      const snippets = this._getSnippets();
+      const snippets = this.getSnippets();
 
       if (snippets[messageId] && !this.cachedSnippets.find(snippet => snippet.id === messageId)) {
         const snippet = snippets[messageId];
@@ -107,7 +107,7 @@ module.exports = class SnippetManager {
 
         fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2));
 
-        this._removeSnippet(messageId);
+        this.removeSnippet(messageId);
       }
     }
   }

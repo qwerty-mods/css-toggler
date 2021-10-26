@@ -8,7 +8,7 @@ const SnippetButton = React.memo(props => {
   return (
     <div className='powercord-snippet-apply'>
       <Clickable onClick={() => {
-        applied ? props.main._removeSnippet(props.message.id) : props.moduleManager._applySnippet(props.message);
+        applied ? props.main.snippetManager.removeSnippet(props.message.id) : props.moduleManager._applySnippet(props.message);
 
         setApplied(!applied);
       }}>
