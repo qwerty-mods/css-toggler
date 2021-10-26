@@ -1,50 +1,110 @@
 .css-toggler-snippet-card {
-  background-color: var(--background-secondary);
   border-radius: 8px;
+  background-color: var(--background-secondary);
   margin-bottom: 15px;
-  width: 100%;
 }
 
-.css-toggler-snippet-card-header {
-  padding: 20px;
+.css-toggler-snippet-card .card-header {
+  display: flex;
   background: var(--background-secondary-alt);
   border-radius: 8px 8px 0 0;
+  justify-content: space-between;
+  padding: 20px;
 }
 
-.css-toggler-snippet-card-header-title {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  color: var(--text-normal);
+.css-toggler-snippet-card .card-header-title {
+  display: flex;
+}
+
+.css-toggler-snippet-card .card-header-title-input {
+  height: 20px;
+  position: relative;
+  width: 200px;
+  z-index: 1;
+}
+
+.css-toggler-snippet-card .card-header-title-input .card-header-title-input-box:hover,
+.css-toggler-snippet-card .card-header-title-input .card-header-title-input-box:focus,
+.css-toggler-snippet-card .card-header-title-input .card-header-title-input-box:focus-within {
+  opacity: 1;
+}
+
+.css-toggler-snippet-card .card-header-title-input .card-header-title-input-box {
+  transition: opacity .1s ease-in-out;
+  opacity: 0;
+}
+
+.css-toggler-snippet-card .card-header-title-placeholder {
+  color: #fff;
+  overflow: hidden;
+  position: absolute;
   font-size: 16px;
-  line-height: 14px;
+  line-height: 16px;
+  padding-top: 5px;
+  padding-left: 8px;
+  padding-right: 8px;
+  max-width: 200px;
+  z-index: 0;
 }
 
-.css-toggler-snippet-card-header-title-right {
+.css-toggler-snippet-card .card-header-snippet-id {
   color: var(--header-secondary);
-  line-height: 14px;
   font-size: 14px;
   font-weight: 400;
+  align-self: flex-end;
 }
 
-.css-toggler-snippet-card-body {
+.css-toggler-snippet-card .card-body {
   padding: 20px 10px 20px;
+  user-select: text;
 }
 
-.css-toggler-snippet-card-body-description {
+.css-toggler-snippet-card .card-body-description {
   color: var(--header-secondary);
-  font-size: 14px;
   padding: 0 8px 18px 8px;
-}
-
-.css-toggler-snippet-card-body-content {
-  color: var(--text-normal);
+  line-height: 16px;
   font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 8px;
 }
 
-.css-toggler-snippet-card-body-content pre .hljs {
+.css-toggler-snippet-card .card-body-content {
+  padding: 0 8px;
+  font-size: 14px;
+  color: var(--text-normal);
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.css-toggler-snippet-card .card-body-content pre .hljs {
   background-color: var(--background-secondary-alt);
   border-radius: 3px;
+}
+
+.css-toggler-snippet-card .card-footer {
+  display: flex;
+  padding: 20px 10px 20px;
+  border-top: 1px solid var(--background-primary);
+  justify-content: space-between;
+  margin: 0 10px;
+}
+
+.css-toggler-snippet-card .card-footer-author {
+  display: flex;
+  margin-right: auto;
+}
+
+.css-toggler-snippet-card .card-footer-author-avatar {
+  margin-right: 8px;
+}
+
+.css-toggler-snippet-card .card-footer-author-name {
+  color: var(--text-normal);
+  align-self: center;
+}
+
+.css-toggler-snippet-card .card-footer-actions {
+  display: flex;
+}
+
+.css-toggler-snippet-card .card-footer-actions button {
+  margin-left: 5px;
 }
