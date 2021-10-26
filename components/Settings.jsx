@@ -1,17 +1,18 @@
 const { React } = require('powercord/webpack');
 const { SwitchItem, TextInput, Category } = require('powercord/components/settings');
 
-class SnippetBox {
-  constructor(props) {
-    super(props);
+let snippetManager;
 
-    this.snippetManager = props.main.snippetManager;
+class SnippetBox extends React.Component {
+  constructor () {
+    super();
+
     this.state = {
       opened: false
     };
   }
 
-  render() {
+  render () {
     return (
       <Category
         name={this.props.name}
@@ -33,7 +34,7 @@ class SnippetBox {
 
         <SwitchItem
           onChange={() => {
-            this.snippetManager.toggleSnippet(this.props.id, !this.props.enabled);
+            snippetManager.toggleSnippet(this.props.id, !this.props.enabled);
             this.props.enabled = !this.props.enabled;
           }}
           value={this.props.enabled}
@@ -48,6 +49,8 @@ module.exports = class Settings extends React.Component {
     super(props);
 
     this.state = {};
+
+    snippetManager = props.main.snippetManager;
   }
 
   render () {
