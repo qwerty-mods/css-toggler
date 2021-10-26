@@ -1,13 +1,13 @@
 module.exports = {
   command: 'enable',
   description: 'Enable an existing snippet',
-  executor: ([ id ], main) => main._toggleSnippet(id, true),
+  executor: ([ id ], main) => main.snippetManager._toggleSnippet(id, true),
   autocomplete: (args, main) => {
     if (args.length > 1) {
       return false;
     }
 
-    const cachedSnippets = main.cachedSnippets;
+    const cachedSnippets = main.snippetManager.cachedSnippets;
     if (cachedSnippets.length === 0) {
       return false;
     }
