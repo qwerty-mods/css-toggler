@@ -1,5 +1,5 @@
 const { Plugin } = require('powercord/entities');
-const { React, getModule } = require('powercord/webpack');
+const { React, getModule, getModuleByDisplayName } = require('powercord/webpack');
 const { SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
 const { inject, uninject } = require('powercord/injector');
 const { findInReactTree } = require('powercord/util');
@@ -31,8 +31,8 @@ module.exports = class CSSToggler extends Plugin {
     this.loadStylesheet('./style.css');
 
     powercord.api.i18n.loadAllStrings(i18n);
-    powercord.api.settings.registerSettings('css-toggler', {
-      category: this.entityID,
+    powercord.api.settings.registerSettings(this.entityID, {
+      category: 'css-toggler',
       label: 'CSS Toggler',
       render: (props) => React.createElement(Settings, {
         ...props,
@@ -40,6 +40,7 @@ module.exports = class CSSToggler extends Plugin {
       })
     });
 
+    this.patchSettingsPage();
     this.patchSnippetButton();
     this.registerMainCommand();
   }
@@ -49,6 +50,32 @@ module.exports = class CSSToggler extends Plugin {
 
     powercord.api.settings.unregisterSettings('css-toggler');
     powercord.api.commands.unregisterCommand('snippet');
+  }
+
+  async patchSettingsPage() {
+    const ErrorBoundary = require('../pc-settings/components/ErrorBoundary')
+
+    const FormSection = getModuleByDisplayName('FormSection', false)
+    const SettingsView = await getModuleByDisplayName('SettingsView')
+    this.inject('css-toggler-settings-page', SettingsView.prototype, 'getPredicateSections', (_, sections) => {
+      const changelog = sections.find(category => category.section === 'changelog');
+      if (changelog) {
+        const SettingsPage = sections.find(category => category.section === this.entityID);
+        if (SettingsPage) {
+          const SettingsElement = powercord.api.settings.tabs[this.entityID].render;
+
+          SettingsPage.element = () => (
+            <ErrorBoundary>
+              <FormSection title={this.manifest.name} tag='h1'>
+                <SettingsElement />
+              </FormSection>
+            </ErrorBoundary>
+          );
+        }
+      }
+
+      return sections;
+    });
   }
 
   async patchSnippetButton () {

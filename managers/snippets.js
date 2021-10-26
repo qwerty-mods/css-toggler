@@ -28,7 +28,15 @@ module.exports = class SnippetManager {
     return cachedSnippets;
   }
 
-  getSnippets () {
+  isEnabled (messageId) {
+    return this.getSnippet(messageId) !== null;
+  }
+
+  getSnippet (messageId) {
+    return this.cachedSnippets.find(snippet => snippet.id === messageId);
+  }
+
+  getSnippets (includeCached = false) {
     const snippets = {};
     const snippetMatches = this.main.moduleManager._quickCSS.matchAll(/(\/[*]{2}[^]+?Snippet ID: \d+\n \*\/)\n([^]+?)\n(\/[*]{2} \d+ \*\/)/g);
 
@@ -43,6 +51,10 @@ module.exports = class SnippetManager {
 
         snippets[id] = { header, content, footer, author, timestamp: appliedTimestamp };
       }
+    }
+
+    if (includeCached === true) {
+      snippets.cached = this.cachedSnippets;
     }
 
     return snippets;
@@ -81,8 +93,12 @@ module.exports = class SnippetManager {
   }
 
   async toggleSnippet (messageId, enable) {
-    if (enable) {
-      const snippet = this.cachedSnippets.find(snippet => snippet.id === messageId);
+    if (typeof enable === 'undefined') {
+      enable = this.isEnabled(messageId);
+    }
+
+    if (enable === true) {
+      const snippet = this.getSnippet(messageId);
 
       if (snippet) {
         const author = userStore.getUser(snippet.author) || await userProfileStore.getUser(snippet.author);
@@ -104,10 +120,10 @@ module.exports = class SnippetManager {
       } else {
         throw new Error(`Snippet '${messageId}' not found!`);
       }
-    } else {
+    } else if (enable === false) {
       const snippets = this.getSnippets();
 
-      if (snippets[messageId] && !this.cachedSnippets.find(snippet => snippet.id === messageId)) {
+      if (snippets[messageId] && !this.isEnabled(messageId)) {
         const snippet = snippets[messageId];
         const newSnippets = [ ...this.cachedSnippets, {
           id: messageId,

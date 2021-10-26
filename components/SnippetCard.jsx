@@ -16,6 +16,7 @@ module.exports = React.memo(props => {
 
   const [ title, setTitle ] = React.useState(props.name);
   const [ author, setAuthor ] = React.useState(userStore.getUser(snippet.author));
+  const [ editing, setEditing ] = React.useState(false);
 
   React.useEffect(async () => {
     if (!author) {
@@ -24,6 +25,10 @@ module.exports = React.memo(props => {
       setAuthor(author);
     }
   }, [ snippet.author ]);
+
+  const handleOnEdit = React.useCallback(() => {
+    setEditing(!editing);
+  }, [ editing ]);
 
   return (
     <div className='css-toggler-snippet-card'>
@@ -49,9 +54,19 @@ module.exports = React.memo(props => {
       </div>
 
       <div className='card-body'>
-        {props.description !== null && <div className='card-body-description'>
+        {!editing && props.description && <div className='card-body-description'>
           {props.description}
         </div>}
+
+        {editing && <div className='card-body-description'>
+          <TextInput
+            maxLength={120}
+            value={props.description}
+            placeholder='How would you describe this snippet?'
+            onChange={() => void 0}
+          />
+        </div>}
+
         <div className='card-body-content'>
           {parser.reactParserFor(parser.defaultRules)(`\`\`\`css\n${snippet.content}\n\`\`\``)}
         </div>
@@ -68,7 +83,13 @@ module.exports = React.memo(props => {
         </div>
 
         <div className='card-footer-actions'>
-          <Button size={Button.Sizes.SMALL} color={Button.Colors.GREEN}>Edit</Button>
+          <Button
+            size={Button.Sizes.SMALL}
+            look={Button.Looks[editing ? 'OUTLINED' : 'FILLED']}
+            color={Button.Colors.GREEN} onClick={handleOnEdit}
+          >
+            {editing ? 'Close' : 'Edit'}
+          </Button>
           <Button size={Button.Sizes.SMALL} color={Button.Colors.RED}>Remove</Button>
           <Button size={Button.Sizes.SMALL} color={Button.Colors.BRAND}>Disable</Button>
         </div>
