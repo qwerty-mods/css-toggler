@@ -1,16 +1,29 @@
-const { React, getModule, getModuleByDisplayName } = require('powercord/webpack');
+const { React, FluxDispatcher, getModule, getModuleByDisplayName } = require('powercord/webpack');
 
 const { default: Button } = getModule(m => m.ButtonLink, false);
 const { default: Avatar } = getModule([ 'AnimatedAvatar' ], false);
 
-const { DEFAULT_AVATARS } = getModule([ 'getDefaultAvatarURL' ], false);
+const { getDefaultAvatarURL } = getModule([ 'getDefaultAvatarURL' ], false);
 
 const TextInput = getModuleByDisplayName('TextInput', false);
 const parser = getModule([ 'parse', 'parseTopic' ], false);
 
-// TODO: Replace placeholders with actual prop values.
+const userStore = getModule([ 'getNullableCurrentUser' ], false);
+const userProfileStore = getModule([ 'fetchProfile' ], false);
+
 module.exports = React.memo(props => {
+  const snippet = props.snippet;
+
   const [ title, setTitle ] = React.useState(props.name);
+  const [ author, setAuthor ] = React.useState(userStore.getUser(snippet.author));
+
+  React.useEffect(async () => {
+    if (!author) {
+      const author = await FluxDispatcher.wait(() => userProfileStore.getUser(snippet.author));
+
+      setAuthor(author);
+    }
+  }, [ snippet.author ]);
 
   return (
     <div className='css-toggler-snippet-card'>
@@ -31,7 +44,7 @@ module.exports = React.memo(props => {
         </div>
 
         <div className='card-header-snippet-id'>
-          ID: {props.id}
+          ID: {snippet.id}
         </div>
       </div>
 
@@ -40,17 +53,17 @@ module.exports = React.memo(props => {
           {props.description}
         </div>}
         <div className='card-body-content'>
-          {parser.reactParserFor(parser.defaultRules)(`\`\`\`css\n${props.content}\n\`\`\``)}
+          {parser.reactParserFor(parser.defaultRules)(`\`\`\`css\n${snippet.content}\n\`\`\``)}
         </div>
       </div>
 
       <div className='card-footer'>
         <div className='card-footer-author'>
           <div className='card-footer-author-avatar'>
-            <Avatar size={Avatar.Sizes.SIZE_32} src={DEFAULT_AVATARS[Math.floor(Math.random() * 5) % DEFAULT_AVATARS.length]}></Avatar>
+            <Avatar size={Avatar.Sizes.SIZE_32} src={author?.getAvatarURL() || getDefaultAvatarURL(snippet.author)}></Avatar>
           </div>
           <div className='card-footer-author-name'>
-            Discord#0000
+            {author?.tag}
           </div>
         </div>
 

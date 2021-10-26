@@ -39,8 +39,9 @@ module.exports = class SnippetManager {
         const id = header.match(/Snippet ID: (\d+)/)[1];
         const appliedString = header.match(/(\w+ \d+, \d{4}(.+ )?\d+:\d+:\d+ \w+)|(\d+ \w+ \d+(.+ )?\d+:\d+:\d+)/)[0];
         const appliedTimestamp = moment(appliedString, 'DD MMM YYYY HH:mm:ss').valueOf();
+        const author = header.match(/#\d{4} \((\d{16,20})\)/)[1];
 
-        snippets[id] = { header, content, footer, timestamp: appliedTimestamp };
+        snippets[id] = { header, content, footer, author, timestamp: appliedTimestamp };
       }
     }
 
@@ -52,9 +53,11 @@ module.exports = class SnippetManager {
     const snippets = quickCSS.split(/(\/\*\*[^]+?\*\/)/).filter(c => c !== '\n\n' && c !== '');
 
     const snippetParts = {
+      id: '',
       header: '',
       content: '',
-      footer: ''
+      footer: '',
+      author: ''
     };
 
     snippets.forEach((line, index) => {
@@ -106,11 +109,8 @@ module.exports = class SnippetManager {
 
       if (snippets[messageId] && !this.cachedSnippets.find(snippet => snippet.id === messageId)) {
         const snippet = snippets[messageId];
-        snippet.author = snippet.header.match(/#\d{4} \((\d{16,20})\)/)[1];
-        snippet.id = messageId;
-
         const newSnippets = [ ...this.cachedSnippets, {
-          id: snippet.id,
+          id: messageId,
           author: snippet.author,
           content: snippet.content,
           timestamp: snippet.timestamp
