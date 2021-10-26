@@ -32,7 +32,10 @@ module.exports = class CSSToggler extends Plugin {
     powercord.api.settings.registerSettings('css-toggler', {
       category: this.entityID,
       label: 'CSS Toggler',
-      render: (props) => React.createElement(Settings, {toggleSnippet: this._toggleSnippet, ...props})
+      render: (props) => React.createElement(Settings, {
+        ...props,
+        main: this
+      })
     });
 
     this.patchSnippetButton();

@@ -5,6 +5,7 @@ class SnippetBox {
   constructor(props) {
     super(props);
 
+    this.snippetManager = props.main.snippetManager;
     this.state = {
       opened: false
     };
@@ -32,7 +33,7 @@ class SnippetBox {
 
         <SwitchItem
           onChange={() => {
-            this.props.toggleSnippet(this.props.id, !this.props.enabled);
+            this.snippetManager.toggleSnippet(this.props.id, !this.props.enabled);
             this.props.enabled = !this.props.enabled;
           }}
           value={this.props.enabled}
@@ -54,8 +55,8 @@ module.exports = class Settings extends React.Component {
     return (
       <div>
         <SnippetBox
-          name="Hi"
-          description="No"
+          name='Hi'
+          description='No'
           enabled={false}
         >
         </SnippetBox>

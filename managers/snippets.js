@@ -116,7 +116,7 @@ module.exports = class SnippetManager {
           timestamp: snippet.timestamp
         } ];
 
-        fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
+        await fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
           throw new Error('Unable to add snippet to cache!', e);
         });
 
