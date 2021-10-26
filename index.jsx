@@ -28,6 +28,8 @@ module.exports = class CSSToggler extends Plugin {
     // TODO: Disabling ^^
     // TODO: Name different snippets differently (and potentially descriptions) for easier access
 
+    this.loadStylesheet('./style.css');
+
     powercord.api.i18n.loadAllStrings(i18n);
     powercord.api.settings.registerSettings('css-toggler', {
       category: this.entityID,
