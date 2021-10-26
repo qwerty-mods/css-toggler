@@ -37,7 +37,7 @@ module.exports = class SnippetManager {
 
       if (!content.includes('Snippet ID:')) {
         const id = header.match(/Snippet ID: (\d+)/)[1];
-        const appliedString = header.match(/(\d+ \w+ \d+(.+ )?\d+:\d+:\d+)/)[1];
+        const appliedString = header.match(/(\w+ \d+, \d{4}(.+ )?\d+:\d+:\d+ \w+)|(\d+ \w+ \d+(.+ )?\d+:\d+:\d+)/)[0];
         const appliedTimestamp = moment(appliedString, 'DD MMM YYYY HH:mm:ss').valueOf();
 
         snippets[id] = { header, content, footer, timestamp: appliedTimestamp };
@@ -72,6 +72,8 @@ module.exports = class SnippetManager {
       quickCSS = quickCSS.replace(`${snippetParts.header}${snippetParts.content}${snippetParts.footer}`, '');
 
       this.main.moduleManager._saveQuickCSS(quickCSS);
+    } else {
+      throw new Error(`Snippet '${messageId}' not found!`);
     }
   }
 
@@ -81,6 +83,9 @@ module.exports = class SnippetManager {
 
       if (snippet) {
         const author = userStore.getUser(snippet.author) || await userProfileStore.getUser(snippet.author);
+        if (!author) {
+          throw new Error('Unable to fetch snippet author!');
+        };
 
         this.main.moduleManager._applySnippet({
           author,
@@ -90,7 +95,11 @@ module.exports = class SnippetManager {
 
         const newSnippets = this.cachedSnippets.filter(snippet => snippet.id !== messageId);
 
-        fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2));
+        await fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
+          throw new Error('Unable to remove snippet from cache!', e);
+        });
+      } else {
+        throw new Error(`Snippet '${messageId}' not found!`);
       }
     } else {
       const snippets = this.getSnippets();
@@ -107,9 +116,13 @@ module.exports = class SnippetManager {
           timestamp: snippet.timestamp
         } ];
 
-        fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2));
+        fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
+          throw new Error('Unable to add snippet to cache!', e);
+        });
 
         this.removeSnippet(messageId);
+      } else {
+        throw new Error(`Snippet '${messageId}' not found!`);
       }
     }
   }
