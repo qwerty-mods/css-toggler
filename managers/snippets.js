@@ -61,8 +61,10 @@ module.exports = class SnippetManager {
       if (line.includes(`Snippet ID: ${messageId}`)) {
         snippetParts.header = line;
         snippetParts.content = snippets[index + 1];
-      } else if (line.match(/\/\*\* \d+ \*\//)) {
-        snippetParts.footer = line;
+
+        if (snippets[index + 2].match(/\/\*\* \d+ \*\//)) {
+          snippetParts.footer = snippets[index + 2];
+        }
       }
     });
 
