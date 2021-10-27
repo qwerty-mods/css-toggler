@@ -12,19 +12,17 @@ module.exports = class Settings extends React.Component {
   render () {
     const { getSetting, toggleSetting, updateSetting } = this.props;
 
-    let snippets = this.snippetManager.getSnippets(true);
-    let cached = snippets.cached;
+    const snippets = this.snippetManager.getSnippets(true);
+    const cachedSnippets = global._.keyBy(snippets.cached, 'id');
+
     delete snippets.cached;
 
-    console.log(cached)
-
-    snippets = {...snippets, ...cached};
-    console.log(snippets);
+    const availableSnippets = { ...snippets, ...cachedSnippets };
 
     return (
       <div>
-        {Object.keys(snippets).map((id, index) => {
-          const snippet = snippets[id];
+        {Object.keys(availableSnippets).map((id, index) => {
+          const snippet = availableSnippets[id];
           snippet.id = id;
 
           return (

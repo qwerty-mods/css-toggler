@@ -13,25 +13,25 @@ function sendToast(snippet, status, callback) {
     header: `${status} Snippet`,
     timeout: 5000,
     content: `${status} snippet ${snippet.name ? snippet.name : snippet.id}`,
-    buttons: [ 
-        {
-            text: 'Dismiss',
-            look: 'ghost',
-            size: 'small',
-            onClick: () => powercord.api.notices.closeToast('status-changed')
-        },
-        {
-            text: status === "Enabled" ? "Disable" : status === "Disabled" ? "Enable" : "Jump to Message",
-            look: 'ghost',
-            size: 'small',
-            onClick: () => {
-                callback(snippet.id, status === "Enabled");
+    buttons: [
+      {
+        text: 'Dismiss',
+        look: 'ghost',
+        size: 'small',
+        onClick: () => powercord.api.notices.closeToast('status-changed')
+      },
+      {
+        text: status === 'Enabled' ? 'Disable' : status === 'Disabled' ? 'Enable' : 'Jump to Message',
+        look: 'ghost',
+        size: 'small',
+        onClick: () => {
+          callback(snippet.id, status === 'Enabled');
 
-                powercord.api.notices.closeToast('status-changed');
-            }
+          powercord.api.notices.closeToast('status-changed');
         }
+      }
     ]
-  })
+  });
 }
 
 module.exports = class SnippetManager {
@@ -56,16 +56,18 @@ module.exports = class SnippetManager {
   }
 
   isEnabled (messageId) {
-    return this.cachedSnippets.find(snippet => snippet.id === messageId) !== null;
+    return !this.cachedSnippets.find(snippet => snippet.id === messageId);
   }
 
   getSnippet (messageId) {
     const snippets = this.getSnippets()
     if (snippets[messageId]) {
-      let snippet = snippets[messageId];
+      const snippet = snippets[messageId];
       snippet.id = messageId;
-      return snippet
+
+      return snippet;
     }
+
     return this.cachedSnippets.find(snippet => snippet.id === messageId);
   }
 
@@ -88,15 +90,13 @@ module.exports = class SnippetManager {
 
     if (includeCached === true) {
       snippets.cached = this.cachedSnippets;
-      console.log(this.cachedSnippets)
-      console.log(snippets.cached);
     }
 
     return snippets;
   }
 
-  removeSnippet (messageId, message=false) {
-    let snippet = this.getSnippets()[messageId]; // For toast
+  removeSnippet (messageId, message = false) {
+    const snippet = this.getSnippets()[messageId]; // For toast
     snippet.id = messageId;
 
     let quickCSS = this.main.moduleManager._quickCSS;
@@ -129,7 +129,9 @@ module.exports = class SnippetManager {
       throw new Error(`Snippet '${messageId}' not found!`);
     }
 
-    if (message) sendToast(snippet, "Removed", (id, f) => transitionTo(`/channels/538759280057122817/755005803303403570/${id}`));
+    if (message) {
+      sendToast(snippet, 'Removed', (id) => transitionTo(`/channels/538759280057122817/755005803303403570/${id}`));
+    }
   }
 
   async toggleSnippet (messageId, enable) {
@@ -161,7 +163,7 @@ module.exports = class SnippetManager {
         throw new Error(`Snippet '${messageId}' not found!`);
       }
 
-      sendToast(snippet, "Enabled", this.toggleSnippet);
+      sendToast(snippet, 'Enabled', this.toggleSnippet);
     } else if (enable === false) {
       const snippets = this.getSnippets();
 
@@ -183,7 +185,7 @@ module.exports = class SnippetManager {
         throw new Error(`Snippet '${messageId}' not found!`);
       }
 
-      sendToast(snippets[messageId], "Disabled", this.toggleSnippet);
+      sendToast(snippets[messageId], 'Disabled', this.toggleSnippet);
     }
   }
 };
