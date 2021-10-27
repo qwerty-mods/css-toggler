@@ -53,6 +53,7 @@
   font-size: 14px;
   font-weight: 400;
   align-self: flex-end;
+  padding-right: 8px;
 }
 
 .css-toggler-snippet-card .card-body {
@@ -62,9 +63,13 @@
 
 .css-toggler-snippet-card .card-body-description {
   color: var(--header-secondary);
-  padding: 0 8px 18px 8px;
+  padding: 0 8px 18px 18px;
   line-height: 16px;
   font-size: 14px;
+}
+
+.css-toggler-snippet-card[data-editing='true'] .card-body-description {
+  padding-left: 8px;
 }
 
 .css-toggler-snippet-card .card-body-content {

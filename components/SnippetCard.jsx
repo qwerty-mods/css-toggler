@@ -20,8 +20,6 @@ module.exports = React.memo(props => {
   const [ description, setDescription ] = React.useState(snippet.details?.description);
   const [ editing, setEditing ] = React.useState(false);
 
-  const snippetDetails = props.getSetting('snippetDetails', {});
-
   React.useEffect(async () => {
     if (!author) {
       const author = await FluxDispatcher.wait(() => userProfileStore.getUser(snippet.author));
@@ -30,9 +28,7 @@ module.exports = React.memo(props => {
     }
   }, [ snippet.author ]);
 
-  const handleOnEdit = React.useCallback(() => {
-    setEditing(!editing);
-  }, [ editing ]);
+  const handleOnEdit = React.useCallback(() => setEditing(!editing), [ editing ]);
 
   return (
     <div className='css-toggler-snippet-card' data-editing={editing}>
@@ -45,14 +41,8 @@ module.exports = React.memo(props => {
             placeholder='Enter a title'
             className='card-header-title-input'
             inputClassName='card-header-title-input-box'
-            onChange={(value) => {
-              snippetDetails[snippet.id] = snippet.details || {};
-              snippetDetails[snippet.id].title = value;
-
-              props.updateSetting('snippetDetails', snippetDetails);
-
-              setTitle(value);
-            }}
+            onChange={setTitle}
+            onBlur={() => (title === '' && setTitle('Untitled Snippet'), props.manager.updateSnippetDetails(snippet.id, { title }))}
           />
           <div className='card-header-title-placeholder'>
             {title}
@@ -75,14 +65,8 @@ module.exports = React.memo(props => {
             value={description}
             placeholder='How would you describe this snippet?'
             className='card-body-description-input-box'
-            onChange={(value) => {
-              snippetDetails[snippet.id] = snippet.details || {};
-              snippetDetails[snippet.id].description = value;
-
-              props.updateSetting('snippetDetails', snippetDetails);
-
-              setDescription(value);
-            }}
+            onChange={setDescription}
+            onBlur={() => props.manager.updateSnippetDetails(snippet.id, { description })}
             autosize={true}
           />
         </div>}
@@ -113,14 +97,20 @@ module.exports = React.memo(props => {
           <Button
             size={Button.Sizes.SMALL}
             color={Button.Colors.RED}
-            onClick={() => props.manager.removeSnippet(snippet.id, true)}
+            onClick={() => {
+              props.manager.removeSnippet(snippet.id, { clearFromCache: !props.manager.isEnabled(snippet.id), showToast: true });
+              props.forceUpdate();
+            }}
           >
             Remove
           </Button>
           <Button
             size={Button.Sizes.SMALL}
             color={Button.Colors.BRAND}
-            onClick={() => props.manager.toggleSnippet(snippet.id, !props.manager.isEnabled(snippet.id))}
+            onClick={async () => {
+              await props.manager.toggleSnippet(snippet.id, !props.manager.isEnabled(snippet.id));
+              props.forceUpdate();
+            }}
           >
             {props.manager.isEnabled(snippet.id) ? 'Disable' : 'Enable'}
           </Button>

@@ -34,6 +34,8 @@ function sendToast(snippet, status, callback) {
   });
 }
 
+const { updateSetting } = powercord.api.settings._fluxProps('css-toggler');
+
 module.exports = class SnippetManager {
   constructor (main) {
     this.main = main;
@@ -51,9 +53,9 @@ module.exports = class SnippetManager {
       fs.writeFileSync(this.snippetCache, '[]');
     }
 
-    const cachedSnippets = JSON.parse(fs.readFileSync(this.snippetCache, 'utf8'));
+    const cachedSnippets = fs.readFileSync(this.snippetCache, 'utf8');
 
-    return cachedSnippets;
+    return JSON.parse(cachedSnippets);
   }
 
   isEnabled (messageId) {
@@ -109,42 +111,77 @@ module.exports = class SnippetManager {
     return snippets;
   }
 
-  removeSnippet (messageId, message = false) {
-    const snippet = this.getSnippets()[messageId]; // For toast
-    snippet.id = messageId;
-
-    let quickCSS = this.main.moduleManager._quickCSS;
-    const snippets = quickCSS.split(/(\/\*\*[^]+?\*\/)/).filter(c => c !== '\n\n' && c !== '');
-
-    const snippetParts = {
-      id: '',
-      header: '',
-      content: '',
-      footer: '',
-      author: ''
-    };
-
-    snippets.forEach((line, index) => {
-      if (line.includes(`Snippet ID: ${messageId}`)) {
-        snippetParts.header = line;
-        snippetParts.content = snippets[index + 1];
-
-        if (snippets[index + 2].match(/\/\*\* \d+ \*\//)) {
-          snippetParts.footer = snippets[index + 2];
-        }
-      }
-    });
-
-    if (snippetParts.header && snippetParts.content && snippetParts.footer) {
-      quickCSS = quickCSS.replace(`${snippetParts.header}${snippetParts.content}${snippetParts.footer}`, '');
-
-      this.main.moduleManager._saveQuickCSS(quickCSS);
-    } else {
-      throw new Error(`Snippet '${messageId}' not found!`);
+  updateSnippetDetails (id, newDetails) {
+    if (typeof newDetails !== 'object') {
+      return;
     }
 
-    if (message) {
+    this.snippetDetails[id] = this.snippetDetails[id] || {};
+
+    Object.assign(this.snippetDetails[id], {
+      title: newDetails.title ?? this.snippetDetails[id]?.title,
+      description: newDetails.description ?? this.snippetDetails[id]?.description
+    });
+
+    if (!this.snippetDetails[id].title) {
+      delete this.snippetDetails[id].title;
+    }
+
+    if (!this.snippetDetails[id].description) {
+      delete this.snippetDetails[id].description;
+    }
+
+    if (!this.snippetDetails[id].title && !this.snippetDetails[id].description) {
+      delete this.snippetDetails[id];
+    }
+
+    updateSetting('snippetDetails', this.snippetDetails);
+  }
+
+  removeSnippet (messageId, options) {
+    if (!options?.clearFromCache) {
+      console.log('Snippet is not enabled, not removing from cache');
+
+      let quickCSS = this.main.moduleManager._quickCSS;
+      const snippets = quickCSS.split(/(\/\*\*[^]+?\*\/)/).filter(c => c !== '\n\n' && c !== '');
+
+      const snippetParts = {
+        id: '',
+        header: '',
+        content: '',
+        footer: '',
+        author: ''
+      };
+
+      snippets.forEach((line, index) => {
+        if (line.includes(`Snippet ID: ${messageId}`)) {
+          snippetParts.header = line;
+          snippetParts.content = snippets[index + 1];
+
+          if (snippets[index + 2].match(/\/\*\* \d+ \*\//)) {
+            snippetParts.footer = snippets[index + 2];
+          }
+        }
+      });
+
+      if (snippetParts.header && snippetParts.content && snippetParts.footer) {
+        quickCSS = quickCSS.replace(`${snippetParts.header}${snippetParts.content}${snippetParts.footer}`, '');
+
+        this.main.moduleManager._saveQuickCSS(quickCSS);
+      } else {
+        throw new Error(`Snippet '${messageId}' not found!`);
+      }
+    }
+
+    if (options?.showToast === true) {
+      const snippet = this.getSnippets({ includeCached: true })[messageId];
+      snippet.id = messageId;
+
       sendToast(snippet, 'Removed', (id) => transitionTo(`/channels/538759280057122817/755005803303403570/${id}`));
+    }
+
+    if (options?.clearFromCache === true) {
+      fs.writeFileSync(this.snippetCache, JSON.stringify(this.cachedSnippets.filter(snippet => snippet.id !== messageId), null, 2));
     }
   }
 

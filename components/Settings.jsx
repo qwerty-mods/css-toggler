@@ -12,10 +12,7 @@ module.exports = class Settings extends React.Component {
   }
 
   render () {
-    const { getSetting, toggleSetting, updateSetting } = this.props;
-
     const ConnectedSnippetCard = this.connectedSnippetCard;
-
     const snippets = this.snippetManager.getSnippets({
       includeDetails: true,
       includeCached: true
@@ -31,7 +28,8 @@ module.exports = class Settings extends React.Component {
             <ConnectedSnippetCard
               key={id}
               snippet={snippet}
-              title={snippet.details?.title || `Unnamed Snippet #${index + 1}`}
+              title={snippet.details?.title || `Untitled Snippet #${index + 1}`}
+              forceUpdate={this.forceUpdate.bind(this)}
               manager={this.snippetManager}
             />
           );
