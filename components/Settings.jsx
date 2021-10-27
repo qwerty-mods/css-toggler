@@ -12,7 +12,14 @@ module.exports = class Settings extends React.Component {
   render () {
     const { getSetting, toggleSetting, updateSetting } = this.props;
 
-    const snippets = this.snippetManager.getSnippets();
+    let snippets = this.snippetManager.getSnippets(true);
+    let cached = snippets.cached;
+    delete snippets.cached;
+
+    console.log(cached)
+
+    snippets = {...snippets, ...cached};
+    console.log(snippets);
 
     return (
       <div>
