@@ -33,10 +33,12 @@ module.exports = {
       return false;
     }
 
+    const snippetDetails = main.settings.get('snippetDetails', {});
+
     return {
       commands: cachedSnippets.filter(snippet => snippet.id.includes(args[0])).map(snippet => ({
         command: snippet.id,
-        description: snippet.content
+        description: snippetDetails[snippet.id]?.title || snippet.content
       })),
       header: 'Available Snippets'
     };

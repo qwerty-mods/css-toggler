@@ -8,6 +8,7 @@ const { getDefaultAvatarURL } = getModule([ 'getDefaultAvatarURL' ], false);
 
 const TextInput = getModuleByDisplayName('TextInput', false);
 const parser = getModule([ 'parse', 'parseTopic' ], false);
+const moment = getModule([ 'momentProperties' ], false);
 
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
@@ -72,7 +73,7 @@ module.exports = React.memo(props => {
         </div>}
 
         <div className='card-body-content'>
-          {parser.reactParserFor(parser.defaultRules)(`\`\`\`css\n${snippet.content}\n\`\`\``)}
+          {parser.reactParserFor(parser.defaultRules)(`\`\`\`css\n/* You applied this snippet ${moment(snippet.timestamp).fromNow()} */\n\n${snippet.content}\n\`\`\``)}
         </div>
       </div>
 

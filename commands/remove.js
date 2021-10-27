@@ -8,7 +8,7 @@ module.exports = {
       error = 'You must specify a message ID!'
     } else {
       try {
-        main.snippetManager.removeSnippet(id);
+        main.snippetManager.removeSnippet(id, { clearFromCache: !main.snippetManager.isEnabled(id) });
       } catch (e) {
         main.error(e);
 
@@ -30,12 +30,12 @@ module.exports = {
       return false;
     }
 
-    const snippets = main.snippetManager.getSnippets();
+    const snippets = main.snippetManager.getSnippets({ includeDetails: true });
 
     return {
       commands: Object.keys(snippets).filter(id => id.includes(args[0])).map(id => ({
         command: id,
-        description: snippets[id].content
+        description: snippets[id].details?.title || snippets[id].content
       })),
       header: 'Available Snippets'
     };

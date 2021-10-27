@@ -84,7 +84,7 @@ module.exports = class SnippetManager {
       if (!content.includes('Snippet ID:')) {
         const id = header.match(/Snippet ID: (\d+)/)[1];
         const appliedString = header.match(/(\w+ \d+, \d{4}(.+ )?\d+:\d+:\d+ \w+)|(\d+ \w+ \d+(.+ )?\d+:\d+:\d+)/)[0];
-        const appliedTimestamp = moment(appliedString, 'DD MMM YYYY HH:mm:ss').valueOf();
+        const appliedTimestamp = moment(appliedString, 'DD MMM YYYY HH:mm:ss').valueOf() || moment(appliedString, 'MMM DD YYYY at HH:mm:ss A').valueOf();
         const author = header.match(/#\d{4} \((\d{16,20})\)/)[1];
 
         snippets[id] = { header, content, footer, author, timestamp: appliedTimestamp };
@@ -140,8 +140,6 @@ module.exports = class SnippetManager {
 
   removeSnippet (messageId, options) {
     if (!options?.clearFromCache) {
-      console.log('Snippet is not enabled, not removing from cache');
-
       let quickCSS = this.main.moduleManager._quickCSS;
       const snippets = quickCSS.split(/(\/\*\*[^]+?\*\/)/).filter(c => c !== '\n\n' && c !== '');
 
