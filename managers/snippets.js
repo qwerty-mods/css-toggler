@@ -38,7 +38,8 @@ module.exports = class SnippetManager {
   constructor (main) {
     this.main = main;
     this.cacheFolder = path.join(__dirname, '..', '.cache');
-    this.snippetsCache = path.join(this.cacheFolder, 'snippets.json');
+    this.snippetCache = path.join(this.cacheFolder, 'snippets.json');
+    this.snippetDetails = main.settings.get('snippetDetails', {});
   }
 
   get cachedSnippets () {
@@ -46,12 +47,12 @@ module.exports = class SnippetManager {
       fs.mkdirSync(this.cacheFolder);
     }
 
-    if (!fs.existsSync(this.snippetsCache)) {
-      fs.writeFileSync(this.snippetsCache, '[]');
+    if (!fs.existsSync(this.snippetCache)) {
+      fs.writeFileSync(this.snippetCache, '[]');
     }
 
-    const cachedSnippets = JSON.parse(fs.readFileSync(this.snippetsCache, 'utf8'));
-    // console.log(cachedSnippets)
+    const cachedSnippets = JSON.parse(fs.readFileSync(this.snippetCache, 'utf8'));
+
     return cachedSnippets;
   }
 
@@ -59,9 +60,9 @@ module.exports = class SnippetManager {
     return !this.cachedSnippets.find(snippet => snippet.id === messageId);
   }
 
-  getSnippet (messageId) {
+  getSnippet (messageId, cachedOnly = false) {
     const snippets = this.getSnippets()
-    if (snippets[messageId]) {
+    if (!cachedOnly && snippets[messageId]) {
       const snippet = snippets[messageId];
       snippet.id = messageId;
 
@@ -71,7 +72,7 @@ module.exports = class SnippetManager {
     return this.cachedSnippets.find(snippet => snippet.id === messageId);
   }
 
-  getSnippets (includeCached = false) {
+  getSnippets (options) {
     const snippets = {};
     const snippetMatches = this.main.moduleManager._quickCSS.matchAll(/(\/[*]{2}[^]+?Snippet ID: \d+\n \*\/)\n([^]+?)\n(\/[*]{2} \d+ \*\/)/g);
 
@@ -85,11 +86,24 @@ module.exports = class SnippetManager {
         const author = header.match(/#\d{4} \((\d{16,20})\)/)[1];
 
         snippets[id] = { header, content, footer, author, timestamp: appliedTimestamp };
+
+        if (options?.includeDetails === true) {
+          snippets[id].details = this.snippetDetails[id];
+        }
       }
     }
 
-    if (includeCached === true) {
-      snippets.cached = this.cachedSnippets;
+    if (options?.includeCached === true) {
+      Object.assign(snippets, { ...this.cachedSnippets.reduce((cachedSnippets, snippet) => {
+        if (options?.includeDetails === true) {
+          snippet.details = this.snippetDetails[snippet.id];
+        }
+
+        return {
+          ...cachedSnippets,
+          [snippet.id]: snippet
+        };
+      }, {}) });
     }
 
     return snippets;
@@ -136,7 +150,7 @@ module.exports = class SnippetManager {
 
   async toggleSnippet (messageId, enable) {
     if (typeof enable === 'undefined') {
-      enable = this.isEnabled(messageId);
+      enable = !this.isEnabled(messageId);
     }
 
     if (enable === true) {
@@ -156,7 +170,7 @@ module.exports = class SnippetManager {
 
         const newSnippets = this.cachedSnippets.filter(snippet => snippet.id !== messageId);
 
-        await fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
+        await fs.promises.writeFile(this.snippetCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
           throw new Error('Unable to remove snippet from cache!', e);
         });
       } else {
@@ -176,7 +190,7 @@ module.exports = class SnippetManager {
           timestamp: snippet.timestamp
         } ];
 
-        await fs.promises.writeFile(this.snippetsCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
+        await fs.promises.writeFile(this.snippetCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
           throw new Error('Unable to add snippet to cache!', e);
         });
 

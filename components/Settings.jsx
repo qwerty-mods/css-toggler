@@ -6,31 +6,32 @@ module.exports = class Settings extends React.Component {
     super(props);
 
     this.state = {};
+    this.settings = props.main.settings;
     this.snippetManager = props.main.snippetManager;
+    this.connectedSnippetCard = this.settings.connectStore(SnippetCard);
   }
 
   render () {
     const { getSetting, toggleSetting, updateSetting } = this.props;
 
-    const snippets = this.snippetManager.getSnippets(true);
-    const cachedSnippets = global._.keyBy(snippets.cached, 'id');
+    const ConnectedSnippetCard = this.connectedSnippetCard;
 
-    delete snippets.cached;
-
-    const availableSnippets = { ...snippets, ...cachedSnippets };
+    const snippets = this.snippetManager.getSnippets({
+      includeDetails: true,
+      includeCached: true
+    });
 
     return (
       <div>
-        {Object.keys(availableSnippets).map((id, index) => {
-          const snippet = availableSnippets[id];
+        {Object.keys(snippets).map((id, index) => {
+          const snippet = snippets[id];
           snippet.id = id;
 
           return (
-            <SnippetCard
+            <ConnectedSnippetCard
               key={id}
               snippet={snippet}
-              name={`Unnamed Snippet #${index + 1}`}
-              description='This is a placeholder description.'
+              title={snippet.details?.title || `Unnamed Snippet #${index + 1}`}
               manager={this.snippetManager}
             />
           );

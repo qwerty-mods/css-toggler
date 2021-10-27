@@ -19,17 +19,18 @@
 .css-toggler-snippet-card .card-header-title-input {
   height: 20px;
   position: relative;
-  width: 200px;
+  width: 250px;
   z-index: 1;
 }
 
-.css-toggler-snippet-card .card-header-title-input .card-header-title-input-box:hover,
-.css-toggler-snippet-card .card-header-title-input .card-header-title-input-box:focus,
-.css-toggler-snippet-card .card-header-title-input .card-header-title-input-box:focus-within {
+.css-toggler-snippet-card .card-header-title-input-box:hover,
+.css-toggler-snippet-card .card-header-title-input-box:focus,
+.css-toggler-snippet-card .card-header-title-input-box:focus-within,
+.css-toggler-snippet-card[data-editing='true'] .card-header-title-input-box {
   opacity: 1;
 }
 
-.css-toggler-snippet-card .card-header-title-input .card-header-title-input-box {
+.css-toggler-snippet-card .card-header-title-input-box {
   transition: opacity .1s ease-in-out;
   opacity: 0;
 }
@@ -43,7 +44,7 @@
   padding-top: 5px;
   padding-left: 8px;
   padding-right: 8px;
-  max-width: 200px;
+  max-width: 250px;
   z-index: 0;
 }
 

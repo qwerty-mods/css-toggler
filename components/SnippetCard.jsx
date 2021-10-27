@@ -1,4 +1,5 @@
 const { React, FluxDispatcher, getModule, getModuleByDisplayName } = require('powercord/webpack');
+const { TextAreaInput } = require('powercord/components/settings');
 
 const { default: Button } = getModule(m => m.ButtonLink, false);
 const { default: Avatar } = getModule([ 'AnimatedAvatar' ], false);
@@ -14,9 +15,12 @@ const userProfileStore = getModule([ 'fetchProfile' ], false);
 module.exports = React.memo(props => {
   const snippet = props.snippet;
 
-  const [ title, setTitle ] = React.useState(props.name);
+  const [ title, setTitle ] = React.useState(props.title);
   const [ author, setAuthor ] = React.useState(userStore.getUser(snippet.author));
+  const [ description, setDescription ] = React.useState(snippet.details?.description);
   const [ editing, setEditing ] = React.useState(false);
+
+  const snippetDetails = props.getSetting('snippetDetails', {});
 
   React.useEffect(async () => {
     if (!author) {
@@ -31,17 +35,24 @@ module.exports = React.memo(props => {
   }, [ editing ]);
 
   return (
-    <div className='css-toggler-snippet-card'>
+    <div className='css-toggler-snippet-card' data-editing={editing}>
       <div className='card-header'>
         <div className='card-header-title'>
           <TextInput
             size='mini'
             maxLength={32}
-            value={title || 'Unnamed Snippet'}
+            value={title}
             placeholder='Enter a title'
             className='card-header-title-input'
             inputClassName='card-header-title-input-box'
-            onChange={setTitle}
+            onChange={(value) => {
+              snippetDetails[snippet.id] = snippet.details || {};
+              snippetDetails[snippet.id].title = value;
+
+              props.updateSetting('snippetDetails', snippetDetails);
+
+              setTitle(value);
+            }}
           />
           <div className='card-header-title-placeholder'>
             {title}
@@ -49,21 +60,30 @@ module.exports = React.memo(props => {
         </div>
 
         <div className='card-header-snippet-id'>
-          ID: {snippet.id}
+          ID: {snippet.id}{props.manager.getSnippet(snippet.id, true) ? ' (cached)' : ''}
         </div>
       </div>
 
       <div className='card-body'>
-        {!editing && props.description && <div className='card-body-description'>
-          {props.description}
+        {!editing && description && <div className='card-body-description'>
+          {description}
         </div>}
 
         {editing && <div className='card-body-description'>
-          <TextInput
+          <TextAreaInput
             maxLength={120}
-            value={props.description}
+            value={description}
             placeholder='How would you describe this snippet?'
-            onChange={() => void 0}
+            className='card-body-description-input-box'
+            onChange={(value) => {
+              snippetDetails[snippet.id] = snippet.details || {};
+              snippetDetails[snippet.id].description = value;
+
+              props.updateSetting('snippetDetails', snippetDetails);
+
+              setDescription(value);
+            }}
+            autosize={true}
           />
         </div>}
 
