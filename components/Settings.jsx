@@ -26,6 +26,7 @@ module.exports = class Settings extends React.Component {
               snippet={snippet}
               name={`Unnamed Snippet #${index + 1}`}
               description='This is a placeholder description.'
+              manager={this.snippetManager}
             />
           );
         })}

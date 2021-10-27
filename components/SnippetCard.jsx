@@ -90,8 +90,16 @@ module.exports = React.memo(props => {
           >
             {editing ? 'Close' : 'Edit'}
           </Button>
-          <Button size={Button.Sizes.SMALL} color={Button.Colors.RED}>Remove</Button>
-          <Button size={Button.Sizes.SMALL} color={Button.Colors.BRAND}>Disable</Button>
+          <Button
+            size={Button.Sizes.SMALL}
+            color={Button.Colors.RED}
+            onClick={() => props.manager.removeSnippet(snippet.id)}
+          >Remove</Button>
+          <Button
+            size={Button.Sizes.SMALL}
+            color={Button.Colors.BRAND}
+            onClick={() => null}
+          >{true ? "Disable" : "Enable"}</Button>
         </div>
       </div>
     </div>
