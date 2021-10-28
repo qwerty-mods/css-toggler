@@ -1,18 +1,19 @@
 const { React } = require('powercord/webpack');
 
 const SnippetCard = require('./SnippetCard');
+let ConnectedSnippetCard;
+
 module.exports = class Settings extends React.Component {
   constructor (props) {
     super(props);
 
-    this.state = {};
     this.settings = props.main.settings;
     this.snippetManager = props.main.snippetManager;
-    this.connectedSnippetCard = this.settings.connectStore(SnippetCard);
+
+    ConnectedSnippetCard = this.settings.connectStore(SnippetCard);
   }
 
   render () {
-    const ConnectedSnippetCard = this.connectedSnippetCard;
     const snippets = this.snippetManager.getSnippets({
       includeDetails: true,
       includeCached: true

@@ -70,6 +70,7 @@
 
 .css-toggler-snippet-card[data-editing='true'] .card-body-description {
   padding-left: 8px;
+  padding-bottom: 0;
 }
 
 .css-toggler-snippet-card .card-body-content {

@@ -1,14 +1,13 @@
-const { React, FluxDispatcher, getModule, getModuleByDisplayName } = require('powercord/webpack');
+const { React, FluxDispatcher, getModule, getModuleByDisplayName, i18n: { Messages } } = require('powercord/webpack');
 const { TextAreaInput } = require('powercord/components/settings');
-
-const { default: Button } = getModule(m => m.ButtonLink, false);
-const { default: Avatar } = getModule([ 'AnimatedAvatar' ], false);
 
 const { getDefaultAvatarURL } = getModule([ 'getDefaultAvatarURL' ], false);
 
+const { default: Button } = getModule([ 'ButtonLink' ], false);
+const { default: Avatar } = getModule([ 'AnimatedAvatar' ], false);
+
 const TextInput = getModuleByDisplayName('TextInput', false);
 const parser = getModule([ 'parse', 'parseTopic' ], false);
-const moment = getModule([ 'momentProperties' ], false);
 
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
@@ -39,7 +38,7 @@ module.exports = React.memo(props => {
             size='mini'
             maxLength={32}
             value={title}
-            placeholder='Enter a title'
+            placeholder={Messages.CSS_TOGGLER_SNIPPET_TITLE_PLACEHOLDER}
             className='card-header-title-input'
             inputClassName='card-header-title-input-box'
             onChange={setTitle}
@@ -64,7 +63,7 @@ module.exports = React.memo(props => {
           <TextAreaInput
             maxLength={120}
             value={description}
-            placeholder='How would you describe this snippet?'
+            placeholder={Messages.CSS_TOGGLER_SNIPPET_DESC_PLACEHOLDER}
             className='card-body-description-input-box'
             onChange={setDescription}
             onBlur={() => props.manager.updateSnippetDetails(snippet.id, { description })}
@@ -73,7 +72,9 @@ module.exports = React.memo(props => {
         </div>}
 
         <div className='card-body-content'>
-          {parser.reactParserFor(parser.defaultRules)(`\`\`\`css\n/* You applied this snippet ${moment(snippet.timestamp).fromNow()} */\n\n${snippet.content}\n\`\`\``)}
+          {parser.reactParserFor(parser.defaultRules)(
+            `\`\`\`css\n/* ${Messages.CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE.format({ date: snippet.timestamp })} */\n\n${snippet.content}\n\`\`\``
+          )}
         </div>
       </div>
 
@@ -83,7 +84,7 @@ module.exports = React.memo(props => {
             <Avatar size={Avatar.Sizes.SIZE_32} src={author?.getAvatarURL() || getDefaultAvatarURL(snippet.author)}></Avatar>
           </div>
           <div className='card-footer-author-name'>
-            {author?.tag}
+            {author?.tag || 'Unknown User'}
           </div>
         </div>
 
@@ -91,9 +92,10 @@ module.exports = React.memo(props => {
           <Button
             size={Button.Sizes.SMALL}
             look={Button.Looks[editing ? 'OUTLINED' : 'FILLED']}
-            color={Button.Colors.GREEN} onClick={handleOnEdit}
+            color={Button.Colors.GREEN}
+            onClick={handleOnEdit}
           >
-            {editing ? 'Close' : 'Edit'}
+            {editing ? Messages.CLOSE : Messages.EDIT}
           </Button>
           <Button
             size={Button.Sizes.SMALL}
@@ -103,17 +105,17 @@ module.exports = React.memo(props => {
               props.forceUpdate();
             }}
           >
-            Remove
+            {Messages.REMOVE}
           </Button>
           <Button
             size={Button.Sizes.SMALL}
             color={Button.Colors.BRAND}
             onClick={async () => {
-              await props.manager.toggleSnippet(snippet.id, !props.manager.isEnabled(snippet.id));
+              await props.manager.toggleSnippet(snippet.id, !props.manager.isEnabled(snippet.id), { showToast: true });
               props.forceUpdate();
             }}
           >
-            {props.manager.isEnabled(snippet.id) ? 'Disable' : 'Enable'}
+            {props.manager.isEnabled(snippet.id) ? Messages.DISABLE : Messages.ENABLE}
           </Button>
         </div>
       </div>

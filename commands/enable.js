@@ -7,7 +7,7 @@ module.exports = {
     if (!id) {
       error = 'You must specify a message ID!'
     } else {
-      await main.snippetManager.toggleSnippet(id, true).catch(e => {
+      await main.snippetManager.enableSnippet(id).catch(e => {
         main.error(e);
 
         error = e.message;

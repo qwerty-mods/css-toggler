@@ -1,15 +1,15 @@
 const { Plugin } = require('powercord/entities');
 const { React, getModule, getModuleByDisplayName } = require('powercord/webpack');
 const { SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
-const { inject, uninject } = require('powercord/injector');
 const { findInReactTree } = require('powercord/util');
+
+const injector = require('powercord/injector');
 
 const i18n = require('./i18n');
 const commands = require('./commands');
 const Settings = require('./components/Settings');
 const SnippetButton = require('./components/SnippetButton');
 const SnippetManager = require('./managers/snippets');
-
 module.exports = class CSSToggler extends Plugin {
   constructor () {
     super();
@@ -23,11 +23,6 @@ module.exports = class CSSToggler extends Plugin {
   }
 
   startPlugin () {
-    // TODO: Deleting snippet via message and command
-    // TODO: Enabling snippets via command or settings
-    // TODO: Disabling ^^
-    // TODO: Name different snippets differently (and potentially descriptions) for easier access
-
     this.loadStylesheet('./style.css');
 
     powercord.api.i18n.loadAllStrings(i18n);
@@ -46,17 +41,17 @@ module.exports = class CSSToggler extends Plugin {
   }
 
   pluginWillUnload () {
-    this.injections.forEach(id => uninject(id));
+    this.injections.forEach(injector.uninject);
 
     powercord.api.settings.unregisterSettings('css-toggler');
     powercord.api.commands.unregisterCommand('snippet');
   }
 
-  async patchSettingsPage() {
-    const ErrorBoundary = require('../pc-settings/components/ErrorBoundary')
+  async patchSettingsPage () {
+    const ErrorBoundary = require('../pc-settings/components/ErrorBoundary');
 
-    const FormSection = getModuleByDisplayName('FormSection', false)
-    const SettingsView = await getModuleByDisplayName('SettingsView')
+    const FormSection = getModuleByDisplayName('FormSection', false);
+    const SettingsView = await getModuleByDisplayName('SettingsView');
     this.inject('css-toggler-settings-page', SettingsView.prototype, 'getPredicateSections', (_, sections) => {
       const changelog = sections.find(category => category.section === 'changelog');
       if (changelog) {
@@ -89,9 +84,9 @@ module.exports = class CSSToggler extends Plugin {
       const __$oldSnippetButton = findInReactTree(res.props.children, n => n.type?.name === 'SnippetButton');
       if (__$oldSnippetButton) {
         const buttons = res.props.children;
-        const snippetButtonIndex = buttons.findIndex(n => n.type?.name === 'SnippetButton');
+        const snippetButtonIndex = buttons.findIndex(n => n === __$oldSnippetButton);
 
-        buttons.splice(snippetButtonIndex, 1, <SnippetButton {...__$oldSnippetButton.props} moduleManager={this.moduleManager} main={this} />);
+        buttons.splice(snippetButtonIndex, 1, <SnippetButton message={props.message} moduleManager={this.moduleManager} main={this} />);
       }
 
       return res;
@@ -104,13 +99,23 @@ module.exports = class CSSToggler extends Plugin {
     powercord.api.commands.registerCommand({
       command: 'snippet',
       description: 'Utility commands to manage your snippets with ease',
-      usage: '{c} <subcommand> <id>',
+      usage: `{c} <${Object.keys(commands).join('|')}> <id>`,
       executor: (args) => {
         const subcommand = commands[args[0]];
         if (!subcommand) {
           return {
             send: false,
-            result: `\`${args[0]}\` is not a valid sub-command. Please specify one of these instead: ${Object.keys(commands).map(cmd => `\`${cmd}\``).join(', ')}.`
+            result: {
+              type: 'rich',
+              color: 0xED4245,
+              title: 'Invalid Subcommand',
+              description: `\`${args[0]}\` is not a valid subcommand. Please specify one of these instead:`,
+              fields: Object.keys(commands).map(key => ({
+                name: key,
+                value: commands[key].description,
+                inline: true
+              }))
+            }
           };
         }
 
@@ -135,7 +140,7 @@ module.exports = class CSSToggler extends Plugin {
   }
 
   inject (id, ...args) {
-    inject(id, ...args);
+    injector.inject(id, ...args);
 
     this.injections.push(id);
   }

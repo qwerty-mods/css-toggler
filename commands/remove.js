@@ -1,7 +1,7 @@
 module.exports = {
   command: 'remove',
   description: 'Remove an existing snippet',
-  executor: async ([ id ], main) => {
+  executor: ([ id ], main) => {
     let error;
 
     if (!id) {
