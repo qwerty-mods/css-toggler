@@ -1,5 +1,6 @@
 const { React, FluxDispatcher, getModule, getModuleByDisplayName, i18n: { Messages } } = require('powercord/webpack');
 const { TextAreaInput } = require('powercord/components/settings');
+const { Tooltip, Clickable } = require('powercord/components');
 
 const { getDefaultAvatarURL } = getModule([ 'getDefaultAvatarURL' ], false);
 
@@ -50,7 +51,13 @@ module.exports = React.memo(props => {
         </div>
 
         <div className='card-header-snippet-id'>
-          ID: {snippet.id}{props.manager.getSnippet(snippet.id, true) ? ' (cached)' : ''}
+          ID:&nbsp;
+          <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
+            <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id)}>
+              {snippet.id}
+            </Clickable>
+          </Tooltip>&nbsp;
+          {props.manager.getSnippet(snippet.id, true) && '(cached)'}
         </div>
       </div>
 
@@ -101,7 +108,12 @@ module.exports = React.memo(props => {
             size={Button.Sizes.SMALL}
             color={Button.Colors.RED}
             onClick={() => {
-              props.manager.removeSnippet(snippet.id, { clearFromCache: !props.manager.isEnabled(snippet.id), showToast: true });
+              try {
+                props.manager.removeSnippet(snippet.id, { clearFromCache: !props.manager.isEnabled(snippet.id), showToast: true });
+              } catch (e) {
+                console.error(e);
+              }
+
               props.forceUpdate();
             }}
           >

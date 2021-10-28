@@ -2,5 +2,6 @@
   "CSS_TOGGLER_SNIPPET_REMOVE": "Remove Snippet",
   "CSS_TOGGLER_SNIPPET_TITLE_PLACEHOLDER": "Enter a title",
   "CSS_TOGGLER_SNIPPET_DESC_PLACEHOLDER": "How would you describe this snippet?",
-  "CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE": "You applied this snippet on {date, date, long} at {date, time, short}"
+  "CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE": "You applied this snippet on {date, date, long} at {date, time, short}",
+  "CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP": "Click to jump to snippet"
 }

@@ -54,6 +54,12 @@
   font-weight: 400;
   align-self: flex-end;
   padding-right: 8px;
+  display: flex;
+}
+
+.css-toggler-snippet-card .card-header-snippet-id .jump-to-snippet {
+  color: var(--text-brand);
+  cursor: pointer;
 }
 
 .css-toggler-snippet-card .card-body {

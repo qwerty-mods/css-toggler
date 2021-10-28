@@ -1,4 +1,4 @@
-const { getModule, i18n: { Messages } } = require('powercord/webpack');
+const { FluxDispatcher, getModule, i18n: { Messages } } = require('powercord/webpack');
 const { GUILD_ID, SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
 
 const fs = require('fs');
@@ -10,14 +10,14 @@ const userProfileStore = getModule([ 'fetchProfile' ], false);
 
 const { transitionTo } = getModule([ 'transitionTo' ], false);
 
-function sendToast (snippet, enabled, callback) {
-  const statusText = enabled ? 'Enabled' : 'Disabled';
-  const snippetDetails = this.snippetDetails[snippet.id];
+function sendToast (snippetId, enabled, callback) {
+  const statusText = enabled === true ? 'Enabled' : enabled === false ? 'Disabled' : 'Removed';
+  const snippetDetails = this.snippetDetails[snippetId]
 
-  powercord.api.notices.sendToast(`css-toggler-${snippet.id}`, {
+  powercord.api.notices.sendToast(`css-toggler-${snippetId}-${Math.random().toString(36)}`, {
     header: `${statusText} Snippet`,
     timeout: 5e3,
-    content: `You've ${statusText.toLowerCase()} snippet '${snippetDetails?.title ? snippetDetails.title : snippet.id}'`,
+    content: `You've ${statusText.toLowerCase()} snippet '${snippetDetails?.title ? snippetDetails.title : snippetId}'`,
     buttons: [
       {
         text: Messages.DISMISS,
@@ -30,7 +30,7 @@ function sendToast (snippet, enabled, callback) {
         look: 'ghost',
         size: 'small',
         onClick: () => {
-          callback(snippet.id);
+          callback(snippetId);
 
           powercord.api.notices.closeToast('status-changed');
         }
@@ -141,17 +141,21 @@ module.exports = class SnippetManager {
     updateSetting('snippetDetails', this.snippetDetails);
   }
 
+  jumpToSnippet (messageId) {
+    FluxDispatcher.dirtyDispatch({ type: 'LAYER_POP' });
+
+    transitionTo(`/channels/${GUILD_ID}/${CSS_SNIPPETS}/${messageId}`);
+  }
+
   removeSnippet (messageId, options) {
     if (!options?.clearFromCache) {
       let quickCSS = this.main.moduleManager._quickCSS;
       const snippets = quickCSS.split(/(\/\*\*[^]+?\*\/)/).filter(c => c !== '\n\n' && c !== '');
 
       const snippetParts = {
-        id: '',
         header: '',
         content: '',
-        footer: '',
-        author: ''
+        footer: ''
       };
 
       snippets.forEach((line, index) => {
@@ -175,10 +179,7 @@ module.exports = class SnippetManager {
     }
 
     if (options?.showToast === true) {
-      const snippet = this.getSnippets({ includeCached: true })[messageId];
-      snippet.id = messageId;
-
-      sendToast.apply(this, [ snippet, null, (id) => transitionTo(`/channels/${GUILD_ID}/${CSS_SNIPPETS}/${id}`) ]);
+      sendToast.apply(this, [ messageId, null, (id) => this.jumpToSnippet(id) ]);
     }
 
     if (options?.clearFromCache === true) {
@@ -242,17 +243,14 @@ module.exports = class SnippetManager {
       enable = !this.isEnabled(messageId);
     }
 
-    let snippet;
-
     if (enable === true) {
-      snippet = await this.enableSnippet(messageId);
+      await this.enableSnippet(messageId);
     } else if (enable === false) {
-      snippet = await this.disableSnippet(messageId);
-      snippet.id = messageId;
+      await this.disableSnippet(messageId);
     }
 
     if (options?.showToast === true) {
-      sendToast.apply(this, [ snippet, enable, this.toggleSnippet.bind(this) ]);
+      sendToast.apply(this, [ messageId, enable, this.toggleSnippet.bind(this) ]);
     }
   }
 };
