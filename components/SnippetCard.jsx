@@ -108,12 +108,7 @@ module.exports = React.memo(props => {
             size={Button.Sizes.SMALL}
             color={Button.Colors.RED}
             onClick={() => {
-              try {
-                props.manager.removeSnippet(snippet.id, { clearFromCache: !props.manager.isEnabled(snippet.id), showToast: true });
-              } catch (e) {
-                console.error(e);
-              }
-
+              props.manager.removeSnippet(snippet.id, { clearFromCache: !props.manager.isEnabled(snippet.id), showToast: true });
               props.forceUpdate();
             }}
           >
