@@ -1,6 +1,8 @@
 const { Plugin } = require('powercord/entities');
-const { React, getModule, getModuleByDisplayName } = require('powercord/webpack');
+const { React, Flux, getModule, getModuleByDisplayName, i18n: { Messages } } = require('powercord/webpack');
 const { SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
+const { Clickable, Tooltip, Icon } = require('powercord/components');
+const { resolveCompiler } = require('powercord/compilers');
 const { findInReactTree } = require('powercord/util');
 
 const injector = require('powercord/injector');
@@ -10,14 +12,14 @@ const commands = require('./commands');
 const Settings = require('./components/Settings');
 const SnippetButton = require('./components/SnippetButton');
 const SnippetManager = require('./managers/snippets');
-const { Clickable, Tooltip, Icon } = require('powercord/components')
+
+const { CommandResultColors } = require('./constants');
 
 module.exports = class CSSToggler extends Plugin {
   constructor () {
     super();
 
     this.injections = [];
-    this.snippetManager = new SnippetManager(this);
   }
 
   get moduleManager () {
@@ -25,7 +27,11 @@ module.exports = class CSSToggler extends Plugin {
   }
 
   startPlugin () {
+    this.watchQuickCSSFile();
     this.loadStylesheet('./style.css');
+
+    this.snippetStore = require('./stores/snippetStore');
+    this.snippetManager = new SnippetManager(this);
 
     powercord.api.i18n.loadAllStrings(i18n);
     powercord.api.settings.registerSettings(this.entityID, {
@@ -37,17 +43,47 @@ module.exports = class CSSToggler extends Plugin {
       })
     });
 
+    this.addSettingsJump();
     this.patchSettingsPage();
     this.patchSnippetButton();
     this.registerMainCommand();
-    this.addSettingsJump();
   }
 
   pluginWillUnload () {
     this.injections.forEach(injector.uninject);
 
+    this._quickCSS.compiler.on('src-update', this._quickCSS.compile);
+    this._quickCSS.compiler.disableWatcher();
+
     powercord.api.settings.unregisterSettings('css-toggler');
     powercord.api.commands.unregisterCommand('snippet');
+  }
+
+  async addSettingsJump () {
+    const settingsModule = getModule([ 'open', 'saveAccountChanges' ], false);
+
+    try {
+      const AsyncQuickCSS = require('../pc-moduleManager/components/manage/QuickCSS');
+      const ConnectedQuickCSS = await AsyncQuickCSS.type().props._provider();
+      const QuickCSS = ConnectedQuickCSS.prototype.render.call({ memoizedGetStateFromStores: () => ({}) }).type;
+
+      this.inject('css-toggler-settings-jump', QuickCSS.prototype, 'render', (_, res) => {
+        const header = findInReactTree(res, n => n.props?.className === 'powercord-quickcss-header');
+        if (header) {
+          header.props.children[1].props.children.unshift(
+            <Tooltip text={Messages.CSS_TOGGLER_GO_TO_CSS_TOGGLER_TOOLTIP} position='left'>
+              <Clickable onClick={() => settingsModule.open(this.entityID)} className='button'>
+                <Icon className='css-toggler-jump-icon' name='Reply' />
+              </Clickable>
+            </Tooltip>
+          );
+        }
+
+        return res;
+      });
+    } catch (e) {
+      this.error('Failed to inject into \'QuickCSS\' panel!', e);
+    }
   }
 
   async patchSettingsPage () {
@@ -77,6 +113,10 @@ module.exports = class CSSToggler extends Plugin {
   }
 
   async patchSnippetButton () {
+    const ConnectedSnippetButton = Flux.connectStores([ this.snippetStore ], ({ message }) => ({
+      applied: this.snippetStore.getSnippet(message.id) !== undefined
+    }))(SnippetButton);
+
     const MiniPopover = await getModule(m => m.default?.displayName === 'MiniPopover');
     this.inject('css-toggler-snippet-button', MiniPopover, 'default', (_, res) => {
       const props = findInReactTree(res, n => n && n.message && n.setPopout);
@@ -89,13 +129,37 @@ module.exports = class CSSToggler extends Plugin {
         const buttons = res.props.children;
         const snippetButtonIndex = buttons.findIndex(n => n === __$oldSnippetButton);
 
-        buttons.splice(snippetButtonIndex, 1, <SnippetButton message={props.message} moduleManager={this.moduleManager} main={this} />);
+        buttons.splice(snippetButtonIndex, 1, <ConnectedSnippetButton message={props.message} moduleManager={this.moduleManager} main={this} />);
       }
 
       return res;
     });
 
     MiniPopover.default.displayName = 'MiniPopover';
+  }
+
+  watchQuickCSSFile () {
+    const { _quickCSS, _quickCSSFile, _quickCSSElement } = this.moduleManager;
+
+    const compiler = resolveCompiler(_quickCSSFile);
+    const compile = async () => {
+      _quickCSSElement.innerHTML = await compiler.compile();
+
+      if (_quickCSS !== _quickCSSElement.innerHTML) {
+        this.moduleManager._quickCSS = _quickCSSElement.innerHTML;
+        this.snippetManager.fetchSnippets();
+      }
+    };
+
+    this._quickCSS = {
+      compiler,
+      compile
+    };
+
+    compiler.enableWatcher();
+    compiler.on('src-update', compile);
+
+    return compile();
   }
 
   registerMainCommand () {
@@ -110,7 +174,7 @@ module.exports = class CSSToggler extends Plugin {
             send: false,
             result: {
               type: 'rich',
-              color: 0xED4245,
+              color: CommandResultColors.ERROR,
               title: 'Invalid Subcommand',
               description: `\`${args[0]}\` is not a valid subcommand. Please specify one of these instead:`,
               fields: Object.keys(commands).map(key => ({
@@ -139,29 +203,6 @@ module.exports = class CSSToggler extends Plugin {
 
         return subcommand.autocomplete(args.slice(1), this);
       }
-    });
-  }
-
-  async addSettingsJump () {
-    const settingsModule = getModule([ 'open', 'saveAccountChanges' ], false);
-  
-    const AsyncQuickCSS = require('../pc-moduleManager/components/manage/QuickCSS');
-    const ConnectedQuickCSS = await AsyncQuickCSS.type().props._provider();
-    const QuickCSS = ConnectedQuickCSS.prototype.render.call({ memoizedGetStateFromStores : () => ({}) }).type;
-  
-    this.inject('css-toggler-settings-jump', QuickCSS.prototype, 'render', (args, res) => {
-      const header = findInReactTree(res, n => n.props?.className === 'powercord-quickcss-header');
-      if (header) {
-        header.props.children[1].props.children.splice(0, 0,
-          <Tooltip text='Go To CSS Toggler'>
-            <Clickable onClick={() => settingsModule.open(this.entityID)} className='button'>
-              <Icon name='Reply' />
-            </Clickable>
-          </Tooltip>
-        );
-      }
-  
-      return res;
     });
   }
 

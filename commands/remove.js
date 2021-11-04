@@ -1,3 +1,5 @@
+const { CommandResultColors } = require('../constants');
+
 module.exports = {
   command: 'remove',
   description: 'Remove an existing snippet',
@@ -7,20 +9,18 @@ module.exports = {
     if (!id) {
       error = 'You must specify a message ID!'
     } else {
-      try {
-        main.snippetManager.removeSnippet(id, { clearFromCache: !main.snippetManager.isEnabled(id) });
-      } catch (e) {
+      main.snippetManager.removeSnippet(id).catch(e => {
         main.error(e);
 
         error = e.message;
-      }
+      });
     }
 
     return {
       send: false,
       result: {
         type: 'rich',
-        color: error ? 0xED4245 : 0x3BA55C,
+        color: error ? CommandResultColors.ERROR : CommandResultColors.SUCCESS,
         description: error || `Successfully removed snippet '${id}'!`
       }
     }
@@ -30,12 +30,12 @@ module.exports = {
       return false;
     }
 
-    const snippets = main.snippetManager.getSnippets({ includeDetails: true });
+    const snippets = main.snippetStore.getSnippets({ includeDetails: true });
 
     return {
       commands: Object.keys(snippets).filter(id => id.includes(args[0])).map(id => ({
         command: id,
-        description: snippets[id].details?.title || snippets[id].content
+        description: snippets[id].details.title
       })),
       header: 'Available Snippets'
     };

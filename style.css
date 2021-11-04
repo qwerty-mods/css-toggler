@@ -1,7 +1,20 @@
+.css-toggler-settings-tab-bar {
+  margin-bottom: 25px;
+}
+
+.css-toggler-settings-tab-bar .selected-3s45Ha {
+  cursor: pointer !important;
+}
+
+.css-toggler-jump-icon {
+  transform: rotateY(180deg);
+}
+
 .css-toggler-snippet-card {
   border-radius: 8px;
   background-color: var(--background-secondary);
-  margin-bottom: 15px;
+  margin-top: 15px;
+  font-size: 14px;
 }
 
 .css-toggler-snippet-card .card-header {
@@ -50,10 +63,10 @@
 
 .css-toggler-snippet-card .card-header-snippet-id {
   color: var(--header-secondary);
-  font-size: 14px;
   font-weight: 400;
   align-self: flex-end;
   padding-right: 8px;
+  user-select: text;
   display: flex;
 }
 
@@ -81,7 +94,6 @@
 
 .css-toggler-snippet-card .card-body-content {
   padding: 0 8px;
-  font-size: 14px;
   color: var(--text-normal);
   text-overflow: ellipsis;
   overflow: hidden;
@@ -102,7 +114,7 @@
 
 .css-toggler-snippet-card .card-footer-author {
   display: flex;
-  margin-right: auto;
+  min-width: 0;
 }
 
 .css-toggler-snippet-card .card-footer-author-avatar {
@@ -112,6 +124,9 @@
 .css-toggler-snippet-card .card-footer-author-name {
   color: var(--text-normal);
   align-self: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 16px;
 }
 
 .css-toggler-snippet-card .card-footer-actions {

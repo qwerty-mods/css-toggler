@@ -1,25 +1,44 @@
-const { React, getModuleByDisplayName, getModule, i18n: { Messages } } = require('powercord/webpack');
+const { React, Flux, getModuleByDisplayName, getModule, i18n: { Messages } } = require('powercord/webpack');
 const { Flex, FormTitle, settings: { RadioGroup, SwitchItem } } = require('powercord/components');
 
-const TabBar = getModuleByDisplayName('TabBar', false);
-const users = getModule(["getUser", "getCurrentUser"], false);
-const currentUser = users.getCurrentUser();
+const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
+const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
 
 const SnippetCard = require('./SnippetCard');
 let ConnectedSnippetCard;
+
+const SearchBar = getModule(m => m?.displayName === 'SearchBar' && m?.defaultProps.hasOwnProperty('isLoading'), false);
+const TabBar = getModuleByDisplayName('TabBar', false);
+
+const { tabBar, tabBarItem } = getModule([ 'tabBar', 'tabBarItem' ], false);
+const breadcrumbClasses = getModule([ 'breadcrumbInactive', 'breadcrumbActive' ], false);
 
 module.exports = class Settings extends React.Component {
   constructor (props) {
     super(props);
 
-    this.state = {
-      selectedItem: "snippets"
-    };
-
     this.settings = props.main.settings;
     this.snippetManager = props.main.snippetManager;
+    this.snippetStore = props.main.snippetStore;
+    this.state = {
+      query: '',
+      selectedItem: 'snippets'
+    };
 
-    ConnectedSnippetCard = this.settings.connectStore(SnippetCard);
+    ConnectedSnippetCard = Flux.connectStores([ this.snippetStore ], ({ snippet }) => ({
+      removed: !this.snippetStore.getSnippet(snippet.id),
+      enabled: this.snippetStore.isEnabled(snippet.id)
+    }))(SnippetCard);
+  }
+
+  renderSearchBar () {
+    return <SearchBar
+      query={this.state.query}
+      size={SearchBar.Sizes.MEDIUM}
+      placeholder={Messages.SEARCH}
+      onChange={(query) => this.setState({ query })}
+      onClear={() => this.setState({ query: '' })}
+    />;
   }
 
   render () {
@@ -27,28 +46,24 @@ module.exports = class Settings extends React.Component {
       <div>
         {this.renderTabs()}
         {this.renderBreadcumb()}
-        {this.state.selectedItem === "snippets" ? this.renderSnippets() : this.renderSettings()}
+        {this.state.selectedItem === 'snippets' && this.renderSearchBar()}
+        {this.state.selectedItem === 'snippets' ? this.renderSnippets() : this.renderSettings()}
       </div>
     )
   }
-  
-  renderTabs() {
-    const { tabBar, tabBarItem } = getModule([ 'tabBar', 'tabBarItem' ], false);
-    const handleOnItemSelect = (selectedItem) => {
-      this.setState({
-        selectedItem
-      });
-    };
+
+  renderTabs () {
+    const handleOnItemSelect = (selectedItem) => this.setState({ selectedItem });
 
     return (
       <TabBar
-        className={[ 'css-toggler-settings-tabbar', tabBar ].filter(Boolean).join(' ')}
-        selectedItem={this.state.category}
+        className={[ 'css-toggler-settings-tab-bar', tabBar ].filter(Boolean).join(' ')}
+        selectedItem={this.state.selectedItem}
         onItemSelect={handleOnItemSelect}
         look={TabBar.Looks.BRAND}
         type={TabBar.Types.TOP}>
         <TabBar.Item className={tabBarItem} id='snippets'>
-          Snippets
+          {Messages.CSS_TOGGLER_SNIPPETS_TITLE}
         </TabBar.Item>
         <TabBar.Item className={tabBarItem} id='settings'>
           {Messages.SETTINGS}
@@ -57,45 +72,56 @@ module.exports = class Settings extends React.Component {
     );
   }
 
-  renderBreadcumb() {
-    const breadcrumbClasses = getModule([ 'breadcrumbInactive', 'breadcrumbActive' ], false);
-
+  renderBreadcumb () {
     return <Flex align={Flex.Align.CENTER} className={breadcrumbClasses.breadcrumbs}>
       <FormTitle tag='h1' className='css-toggler-settings-title'>
-        {this.state.category === "snippets" ? Snippets : Messages.Settings}
+        {this.state.selectedItem === 'snippets' ? Messages.CSS_TOGGLER_SNIPPETS_TITLE : Messages.SETTINGS}
       </FormTitle>
     </Flex>;
   }
 
-  renderSnippets() {
-    const snippets = this.snippetManager.getSnippets({
+  renderSnippets () {
+    const snippets = this.snippetStore.getSnippets({
       includeDetails: true,
       includeCached: true
     });
 
-    return <>{Object.keys(snippets).sort((a, b) => {
-      if (this.props.getSetting('sort', 'default') === "user") {
-        const author1 = users.getUser(snippets[a].author);
-        const author2 = users.getUser(snippets[b].author);
-        
+    const sortOption = this.props.getSetting('sort', 'default');
+    const prioritizeSelf = this.props.getSetting('sort-me');
+    const searchFilter = (id) => {
+      const snippet = snippets[id];
+      const lowerCaseQuery = this.state.query.toLowerCase();
+
+      if (this.state.query !== '') {
+        return (snippet.details?.title?.toLowerCase())?.includes(lowerCaseQuery) || (snippet.details?.description?.toLowerCase())?.includes(lowerCaseQuery);
+      }
+
+      return id;
+    };
+
+    return Object.keys(snippets).filter(searchFilter).sort((a, b) => {
+      if (sortOption === 'user') {
+        const author1 = userStore.getUser(snippets[a].author);
+        const author2 = userStore.getUser(snippets[b].author);
+
         return author1.username.localeCompare(author2.username);
-      } else if (this.props.getSetting('sort', 'default') === "alphabetically") {
+      } else if (sortOption === 'alphabetically') {
         return snippets[a].details?.title.localeCompare(snippets[b].details?.title);
       }
 
       return 0; // fallback
     }).sort((a, b) => {
-      if (this.props.getSetting('sort-me')) {
-        const author1 = users.getUser(snippets[a].author);
-        const author2 = users.getUser(snippets[b].author);
+      const snippetAuthorId1 = snippets[a].author;
+      const snippetAuthorId2 = snippets[b].author;
 
-        if (author1.id === currentUser.id === author2.id) return 0;
-        if (author1.id === currentUser.id) return -1;
-        if (author2.id === currentUser.id) return 1;
+      if (prioritizeSelf) {
+        if (Object.keys(snippets).indexOf(b) === 0 && snippetAuthorId2 === currentUserId) {
+          return 0;
+        }
 
-        return 0;
+        return snippetAuthorId1 === currentUserId ? -1 : snippetAuthorId2 === currentUserId ? 1 : 0;
       }
-    }).map((id, index) => {
+    }).map(id => {
       const snippet = snippets[id];
       snippet.id = id;
 
@@ -103,46 +129,49 @@ module.exports = class Settings extends React.Component {
         <ConnectedSnippetCard
           key={id}
           snippet={snippet}
-          title={snippet.details?.title || `Untitled Snippet #${index + 1}`}
-          forceUpdate={this.forceUpdate.bind(this)}
+          title={snippet.details.title}
           manager={this.snippetManager}
+          main={this.props.main}
         />
       );
-    })}</>;
+    });
   }
 
-  renderSettings() {
+  renderSettings () {
     const { updateSetting, getSetting, toggleSetting } = this.props;
+
     return <>
       <RadioGroup
         onChange={(e) => updateSetting('sort', e.value)}
         value={getSetting('sort', 'default')}
         options={[
           {
-            name: 'Default',
-            desc: 'Ordered as placed in Quick CSS',
+            name: Messages.CSS_TOGGLER_SORT_SNIPPETS_DEFAULT_OPT,
+            desc: Messages.CSS_TOGGLER_SORT_SNIPPETS_DEFAULT_OPT_DESC,
             value: 'default'
           },
           {
-            name: 'User',
-            desc: 'Sorts by users in alphabetical order.',
+            name: Messages.CSS_TOGGLER_SORT_SNIPPETS_USER_OPT,
+            desc: Messages.CSS_TOGGLER_SORT_SNIPPETS_USER_OPT_DESC,
             value: 'user'
           },
           {
-            name: 'Alphabetically',
-            desc: 'Sorts by snippet name in alphabetical order.',
+            name: Messages.CSS_TOGGLER_SORT_SNIPPETS_ALPHABETICALLY_OPT,
+            desc: Messages.CSS_TOGGLER_SORT_SNIPPETS_ALPHABETICALLY_OPT_DESC,
             value: 'alphabetically'
           }
         ]}
       >
-        Sort snippets
+        {Messages.CSS_TOGGLER_SORT_SNIPPETS_TITLE}
       </RadioGroup>
-      
+
       <SwitchItem
-        note="Your snippets will be ordered first"
+        note={Messages.CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_DESC}
         value={getSetting('sort-me', false)}
-        onChange={(e) => toggleSetting('sort-me')}
-      >Prioritize my Snippets</SwitchItem>
+        onChange={() => toggleSetting('sort-me')}
+      >
+        {Messages.CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_TITLE}
+      </SwitchItem>
     </>;
   }
 };

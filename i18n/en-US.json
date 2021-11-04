@@ -1,7 +1,18 @@
 {
+  "CSS_TOGGLER_SNIPPETS_TITLE": "Snippets",
   "CSS_TOGGLER_SNIPPET_REMOVE": "Remove Snippet",
   "CSS_TOGGLER_SNIPPET_TITLE_PLACEHOLDER": "Enter a title",
   "CSS_TOGGLER_SNIPPET_DESC_PLACEHOLDER": "How would you describe this snippet?",
   "CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE": "You applied this snippet on {date, date, long} at {date, time, short}",
-  "CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP": "Click to jump to snippet"
+  "CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP": "Click to jump to snippet",
+  "CSS_TOGGLER_GO_TO_CSS_TOGGLER_TOOLTIP": "Click to go to CSS Toggler",
+  "CSS_TOGGLER_SORT_SNIPPETS_TITLE": "Sort Snippets",
+  "CSS_TOGGLER_SORT_SNIPPETS_DEFAULT_OPT": "Default",
+  "CSS_TOGGLER_SORT_SNIPPETS_DEFAULT_OPT_DESC": "Ordered as placed in Quick CSS.",
+  "CSS_TOGGLER_SORT_SNIPPETS_USER_OPT": "User",
+  "CSS_TOGGLER_SORT_SNIPPETS_USER_OPT_DESC": "Sorted by username in alphabetical order.",
+  "CSS_TOGGLER_SORT_SNIPPETS_ALPHABETICALLY_OPT": "Alphabetically",
+  "CSS_TOGGLER_SORT_SNIPPETS_ALPHABETICALLY_OPT_DESC": "Sorted by snippet name in alphabetical order.",
+  "CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_TITLE": "Prioritize my Snippets",
+  "CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_DESC": "Your snippets will always be placed at the top of the list."
 }

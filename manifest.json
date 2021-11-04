@@ -1,7 +1,10 @@
 {
-    "name": "CSS Toggler",
-    "version": "1.0.0-beta",
-    "description": "Allows for more quick css functionality.",
-    "author": "12944qwerty, M|-|4r13y ツ#1051",
-    "license": "OSL-3.0"
+  "name": "CSS Toggler",
+  "version": "1.0.0-beta",
+  "description": "Allows for more quick css functionality.",
+  "author": "12944qwerty, M|-|4r13y ツ#1051",
+  "license": "OSL-3.0",
+  "dependencies": [
+    "pc-moduleManager"
+  ]
 }

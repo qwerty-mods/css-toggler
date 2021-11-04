@@ -1,3 +1,5 @@
+const { CommandResultColors } = require('../constants');
+
 module.exports = {
   command: 'enable',
   description: 'Enable an existing snippet',
@@ -18,7 +20,7 @@ module.exports = {
       send: false,
       result: {
         type: 'rich',
-        color: error ? 0xED4245 : 0x3BA55C,
+        color: error ? CommandResultColors.ERROR : CommandResultColors.SUCCESS,
         description: error || `Successfully enabled snippet '${id}'!`
       }
     }
@@ -28,17 +30,12 @@ module.exports = {
       return false;
     }
 
-    const cachedSnippets = main.snippetManager.cachedSnippets;
-    if (cachedSnippets.length === 0) {
-      return false;
-    }
-
-    const snippetDetails = main.settings.get('snippetDetails', {});
+    const snippets = main.snippetStore.getSnippets({ includeDetails: true, cachedOnly: true });
 
     return {
-      commands: cachedSnippets.filter(snippet => snippet.id.includes(args[0])).map(snippet => ({
-        command: snippet.id,
-        description: snippetDetails[snippet.id]?.title || snippet.content
+      commands: Object.keys(snippets).filter(id => id.includes(args[0])).map(id => ({
+        command: id,
+        description: snippets[id].details.title
       })),
       header: 'Available Snippets'
     };

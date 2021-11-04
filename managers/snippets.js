@@ -1,38 +1,38 @@
-const { FluxDispatcher, getModule, i18n: { Messages } } = require('powercord/webpack');
+const { FluxDispatcher, getModule, constants: { ActionTypes, Routes }, i18n: { Messages } } = require('powercord/webpack');
 const { GUILD_ID, SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
+const { FluxActions } = require('../constants');
 
-const fs = require('fs');
-const path = require('path');
 const moment = getModule([ 'momentProperties' ], false);
-
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
 
 const { transitionTo } = getModule([ 'transitionTo' ], false);
 
-function sendToast (snippetId, enabled, callback) {
+function sendToast (id, enabled, callback) {
   const statusText = enabled === true ? 'Enabled' : enabled === false ? 'Disabled' : 'Removed';
-  const snippetDetails = this.snippetDetails[snippetId]
+  const snippetDetails = this.snippetDetails[id]
 
-  powercord.api.notices.sendToast(`css-toggler-${snippetId}-${Math.random().toString(36)}`, {
+  const toastId = `css-toggler-${id}-${Math.random().toString(36)}`;
+
+  powercord.api.notices.sendToast(toastId, {
     header: `${statusText} Snippet`,
     timeout: 5e3,
-    content: `You've ${statusText.toLowerCase()} snippet '${snippetDetails?.title ? snippetDetails.title : snippetId}'`,
+    content: `You've ${statusText.toLowerCase()} snippet '${snippetDetails?.title ? snippetDetails.title : id}'`,
     buttons: [
       {
         text: Messages.DISMISS,
         look: 'ghost',
         size: 'small',
-        onClick: () => powercord.api.notices.closeToast('status-changed')
+        onClick: () => powercord.api.notices.closeToast(toastId)
       },
       {
         text: enabled === true ? Messages.DISABLE : enabled === false ? Messages.ENABLE : Messages.JUMP_TO_MESSAGE,
         look: 'ghost',
         size: 'small',
         onClick: () => {
-          callback(snippetId);
+          callback(id);
 
-          powercord.api.notices.closeToast('status-changed');
+          powercord.api.notices.closeToast(toastId);
         }
       }
     ]
@@ -44,42 +44,13 @@ const { updateSetting } = powercord.api.settings._fluxProps('css-toggler');
 module.exports = class SnippetManager {
   constructor (main) {
     this.main = main;
-    this.cacheFolder = path.join(__dirname, '..', '.cache');
-    this.snippetCache = path.join(this.cacheFolder, 'snippets.json');
     this.snippetDetails = main.settings.get('snippetDetails', {});
+    this.snippetStore = main.snippetStore;
+
+    this.fetchSnippets();
   }
 
-  get cachedSnippets () {
-    if (!fs.existsSync(this.cacheFolder)) {
-      fs.mkdirSync(this.cacheFolder);
-    }
-
-    if (!fs.existsSync(this.snippetCache)) {
-      fs.writeFileSync(this.snippetCache, '[]');
-    }
-
-    const cachedSnippets = fs.readFileSync(this.snippetCache, 'utf8');
-
-    return JSON.parse(cachedSnippets);
-  }
-
-  isEnabled (messageId) {
-    return !this.cachedSnippets.find(snippet => snippet.id === messageId);
-  }
-
-  getSnippet (messageId, cachedOnly = false) {
-    const snippets = this.getSnippets()
-    if (!cachedOnly && snippets[messageId]) {
-      const snippet = snippets[messageId];
-      snippet.id = messageId;
-
-      return snippet;
-    }
-
-    return this.cachedSnippets.find(snippet => snippet.id === messageId);
-  }
-
-  getSnippets (options) {
+  fetchSnippets () {
     const snippets = {};
     const snippetMatches = this.main.moduleManager._quickCSS.matchAll(/(\/[*]{2}[^]+?Snippet ID: \d+\n \*\/)\n([^]+?)\n(\/[*]{2} \d+ \*\/)/g);
 
@@ -93,25 +64,13 @@ module.exports = class SnippetManager {
         const author = header.match(/#\d{4} \((\d{16,20})\)/)[1];
 
         snippets[id] = { header, content, footer, author, timestamp: appliedTimestamp };
-
-        if (options?.includeDetails === true) {
-          snippets[id].details = this.snippetDetails[id];
-        }
       }
     }
 
-    if (options?.includeCached === true) {
-      Object.assign(snippets, { ...this.cachedSnippets.reduce((cachedSnippets, snippet) => {
-        if (options?.includeDetails === true) {
-          snippet.details = this.snippetDetails[snippet.id];
-        }
-
-        return {
-          ...cachedSnippets,
-          [snippet.id]: snippet
-        };
-      }, {}) });
-    }
+    FluxDispatcher.dirtyDispatch({
+      type: FluxActions.SNIPPETS_FETCH,
+      snippets
+    });
 
     return snippets;
   }
@@ -142,13 +101,13 @@ module.exports = class SnippetManager {
   }
 
   jumpToSnippet (messageId) {
-    FluxDispatcher.dirtyDispatch({ type: 'LAYER_POP' });
+    FluxDispatcher.dirtyDispatch({ type: ActionTypes.LAYER_POP });
 
-    transitionTo(`/channels/${GUILD_ID}/${CSS_SNIPPETS}/${messageId}`);
+    transitionTo(Routes.CHANNEL(GUILD_ID, CSS_SNIPPETS, messageId));
   }
 
-  removeSnippet (messageId, options) {
-    if (!options?.clearFromCache) {
+  async removeSnippet (id, options) {
+    if (this.snippetStore.isEnabled(id)) {
       let quickCSS = this.main.moduleManager._quickCSS;
       const snippets = quickCSS.split(/(\/\*\*[^]+?\*\/)/).filter(c => c !== '\n\n' && c !== '');
 
@@ -159,7 +118,7 @@ module.exports = class SnippetManager {
       };
 
       snippets.forEach((line, index) => {
-        if (line.includes(`Snippet ID: ${messageId}`)) {
+        if (line.includes(`Snippet ID: ${id}`)) {
           snippetParts.header = line;
           snippetParts.content = snippets[index + 1];
 
@@ -172,85 +131,96 @@ module.exports = class SnippetManager {
       if (snippetParts.header && snippetParts.content && snippetParts.footer) {
         quickCSS = quickCSS.replace(`${snippetParts.header}${snippetParts.content}${snippetParts.footer}`, '');
 
-        this.main.moduleManager._saveQuickCSS(quickCSS);
+        await this.main.moduleManager._saveQuickCSS(quickCSS);
       } else {
-        throw new Error(`Snippet '${messageId}' not found!`);
+        throw new Error(`Snippet '${id}' not found!`);
       }
     }
 
     if (options?.showToast === true) {
-      sendToast.apply(this, [ messageId, null, (id) => this.jumpToSnippet(id) ]);
+      sendToast.call(this, id, null, this.jumpToSnippet);
     }
 
-    if (options?.clearFromCache === true) {
-      fs.writeFileSync(this.snippetCache, JSON.stringify(this.cachedSnippets.filter(snippet => snippet.id !== messageId), null, 2));
+    delete options?.showToast;
+
+    FluxDispatcher.dirtyDispatch({
+      type: FluxActions.SNIPPET_REMOVE,
+      options,
+      id
+    });
+  }
+
+  addSnippet (message) {
+    if (typeof message !== 'object') {
+      return;
+    }
+
+    const snippet = this.snippetStore.getSnippet(message.id);
+
+    if (!snippet) {
+      this.main.moduleManager._applySnippet(message);
+    } else {
+      throw new Error(`Snippet '${snippet.id}' already exists!`);
     }
   }
 
-  async enableSnippet (messageId) {
-    const snippet = this.getSnippet(messageId);
+  async enableSnippet (id) {
+    const snippet = this.snippetStore.getSnippet(id);
+    const enabled = this.snippetStore.isEnabled(id);
 
-    if (snippet) {
-      const author = userStore.getUser(snippet.author) || await userProfileStore.getUser(snippet.author);
+    if (snippet && !enabled) {
+      const author = userStore.getUser(snippet.author) || await userProfileStore.getUser(snippet.author).catch(() => null);
       if (!author) {
-        throw new Error('Unable to fetch snippet author!');
-      };
+        throw new Error(`Unable to fetch snippet author for '${id}'!`);
+      }
 
       this.main.moduleManager._applySnippet({
+        id,
         author,
-        id: messageId,
         content: `\`\`\`css\n${snippet.content}\n\`\`\``
       });
 
-      const newSnippets = this.cachedSnippets.filter(snippet => snippet.id !== messageId);
-
-      await fs.promises.writeFile(this.snippetCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
-        throw new Error('Unable to remove snippet from cache!', e);
+      FluxDispatcher.dirtyDispatch({
+        type: FluxActions.SNIPPET_ENABLE,
+        id
       });
 
       return snippet;
     } else {
-      throw new Error(`Snippet '${messageId}' not found!`);
+      throw new Error(snippet ? `Snippet '${id}' is already enabled!` : `Snippet '${id}' not found!`);
     }
   }
 
-  async disableSnippet (messageId) {
-    const snippets = this.getSnippets();
+  async disableSnippet (id) {
+    const snippet = this.snippetStore.getSnippet(id);
+    const enabled = this.snippetStore.isEnabled(id);
 
-    if (snippets[messageId] && this.isEnabled(messageId)) {
-      const snippet = snippets[messageId];
-      const newSnippets = [ ...this.cachedSnippets, {
-        id: messageId,
-        author: snippet.author,
-        content: snippet.content,
-        timestamp: snippet.timestamp
-      } ];
+    if (snippet && enabled) {
+      await this.removeSnippet(id, { preserveSnippet: true });
 
-      await fs.promises.writeFile(this.snippetCache, JSON.stringify(newSnippets, null, 2)).catch(e => {
-        throw new Error('Unable to add snippet to cache!', e);
+      FluxDispatcher.dirtyDispatch({
+        type: FluxActions.SNIPPET_DISABLE,
+        id
       });
-
-      this.removeSnippet(messageId);
 
       return snippet;
     } else {
-      throw new Error(`Snippet '${messageId}' not found!`);
+      throw new Error(snippet ? `Snippet '${id}' is already disabled!` : `Snippet '${id}' not found!`);
     }
   }
 
-  async toggleSnippet (messageId, enable, options) {
-    if (typeof enable === 'undefined') {
-      enable = !this.isEnabled(messageId);
-    }
+  async toggleSnippet (id, ...args) {
+    const state = typeof args[0] === 'boolean' ? args[0] : !this.snippetStore.isEnabled(id);
+    const options = typeof args[0] === 'object' ? args[0] : args[1] || {};
 
-    if (enable === true) {
-      await this.enableSnippet(messageId);
-    } else if (enable === false) {
-      await this.disableSnippet(messageId);
+    if (state === true) {
+      await this.enableSnippet(id);
+    } else if (state === false) {
+      await this.disableSnippet(id);
     }
 
     if (options?.showToast === true) {
-      sendToast.apply(this, [ messageId, enable, this.toggleSnippet.bind(this) ]);
+      sendToast.call(this, id, state, this.toggleSnippet.bind(this));
     }
   }
 };

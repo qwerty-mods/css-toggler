@@ -2,17 +2,26 @@ const { React, i18n: { Messages } } = require('powercord/webpack');
 const { Clickable } = require('powercord/components');
 
 const SnippetButton = React.memo(props => {
-  const isExistingSnippet = props.moduleManager._quickCSS.includes(`Snippet ID: ${props.message.id}`);
-  const [ applied, setApplied ] = React.useState(isExistingSnippet);
+  const [ applied, setApplied ] = React.useState(props.applied);
+
+  const callback = React.useCallback(() => setApplied(!applied), [ applied ]);
 
   return (
     <div className='powercord-snippet-apply'>
       <Clickable onClick={() => {
-        applied ? props.main.snippetManager.removeSnippet(props.message.id) : props.moduleManager._applySnippet(props.message);
+        try {
+          if (props.applied) {
+            props.main.snippetManager.removeSnippet(props.message.id);
+          } else {
+            props.main.snippetManager.addSnippet(props.message);
+          }
+        } catch (e) {
+          props.main.error(e);
+        }
 
-        setApplied(!applied);
+        callback();
       }}>
-        {applied ? Messages.CSS_TOGGLER_SNIPPET_REMOVE : Messages.POWERCORD_SNIPPET_APPLY}
+        {props.applied ? Messages.CSS_TOGGLER_SNIPPET_REMOVE : Messages.POWERCORD_SNIPPET_APPLY}
       </Clickable>
     </div>
   );

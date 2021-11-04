@@ -13,8 +13,14 @@ const parser = getModule([ 'parse', 'parseTopic' ], false);
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
 
+const { MAX_SNIPPET_TITLE_LENGTH, MAX_SNIPPET_DESCRIPTION_LENGTH, DEFAULT_SNIPPET_TITLE } = require('../constants');
+
 module.exports = React.memo(props => {
   const snippet = props.snippet;
+
+  if (!snippet || props.removed) {
+    return null;
+  }
 
   const [ title, setTitle ] = React.useState(props.title);
   const [ author, setAuthor ] = React.useState(userStore.getUser(snippet.author));
@@ -30,6 +36,17 @@ module.exports = React.memo(props => {
   }, [ snippet.author ]);
 
   const handleOnEdit = React.useCallback(() => setEditing(!editing), [ editing ]);
+  const handleOnTitleBlur = React.useCallback(() => {
+    const titleTrimmed = title.trim();
+    setTitle(titleTrimmed);
+
+    const isEmptyOrDefault = titleTrimmed === '' || titleTrimmed.startsWith(DEFAULT_SNIPPET_TITLE);
+    if (isEmptyOrDefault) {
+      setTitle(titleTrimmed === '' ? DEFAULT_SNIPPET_TITLE : titleTrimmed);
+    }
+
+    props.manager.updateSnippetDetails(snippet.id, { title: isEmptyOrDefault ? '' : titleTrimmed });
+  }, [ title ]);
 
   return (
     <div className='css-toggler-snippet-card' data-editing={editing}>
@@ -37,13 +54,13 @@ module.exports = React.memo(props => {
         <div className='card-header-title'>
           <TextInput
             size='mini'
-            maxLength={32}
-            value={title}
-            placeholder={Messages.CSS_TOGGLER_SNIPPET_TITLE_PLACEHOLDER}
+            maxLength={MAX_SNIPPET_TITLE_LENGTH}
+            value={title.startsWith(DEFAULT_SNIPPET_TITLE) ? '' : title}
+            placeholder={title.startsWith(DEFAULT_SNIPPET_TITLE) ? '' : Messages.CSS_TOGGLER_SNIPPET_TITLE_PLACEHOLDER}
             className='card-header-title-input'
             inputClassName='card-header-title-input-box'
-            onChange={setTitle}
-            onBlur={() => (title === '' && setTitle('Untitled Snippet'), props.manager.updateSnippetDetails(snippet.id, { title }))}
+            onChange={(value) => setTitle(value.startsWith(DEFAULT_SNIPPET_TITLE) ? title : value)}
+            onBlur={handleOnTitleBlur}
           />
           <div className='card-header-title-placeholder'>
             {title}
@@ -54,10 +71,10 @@ module.exports = React.memo(props => {
           ID:&nbsp;
           <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
             <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id)}>
-              {snippet.id}
+              {snippet.id}&nbsp;
             </Clickable>
-          </Tooltip>&nbsp;
-          {props.manager.getSnippet(snippet.id, true) && '(cached)'}
+          </Tooltip>
+          {!props.enabled && '(cached)'}
         </div>
       </div>
 
@@ -68,7 +85,7 @@ module.exports = React.memo(props => {
 
         {editing && <div className='card-body-description'>
           <TextAreaInput
-            maxLength={120}
+            maxLength={MAX_SNIPPET_DESCRIPTION_LENGTH}
             value={description}
             placeholder={Messages.CSS_TOGGLER_SNIPPET_DESC_PLACEHOLDER}
             className='card-body-description-input-box'
@@ -91,7 +108,7 @@ module.exports = React.memo(props => {
             <Avatar size={Avatar.Sizes.SIZE_32} src={author?.getAvatarURL() || getDefaultAvatarURL(snippet.author)}></Avatar>
           </div>
           <div className='card-footer-author-name'>
-            {author?.tag || 'Unknown User'}
+            {author?.tag || Messages.UNKNWON_USER}
           </div>
         </div>
 
@@ -108,8 +125,11 @@ module.exports = React.memo(props => {
             size={Button.Sizes.SMALL}
             color={Button.Colors.RED}
             onClick={() => {
-              props.manager.removeSnippet(snippet.id, { clearFromCache: !props.manager.isEnabled(snippet.id), showToast: true });
-              props.forceUpdate();
+              try {
+                props.manager.removeSnippet(snippet.id, { showToast: true });
+              } catch (e) {
+                props.main.error(e);
+              }
             }}
           >
             {Messages.REMOVE}
@@ -118,11 +138,14 @@ module.exports = React.memo(props => {
             size={Button.Sizes.SMALL}
             color={Button.Colors.BRAND}
             onClick={async () => {
-              await props.manager.toggleSnippet(snippet.id, !props.manager.isEnabled(snippet.id), { showToast: true });
-              props.forceUpdate();
+              try {
+                await props.manager.toggleSnippet(snippet.id, { showToast: true })
+              } catch (e) {
+                props.main.error(e);
+              }
             }}
           >
-            {props.manager.isEnabled(snippet.id) ? Messages.DISABLE : Messages.ENABLE}
+            {props.enabled ? Messages.DISABLE : Messages.ENABLE}
           </Button>
         </div>
       </div>
