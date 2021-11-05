@@ -130,6 +130,7 @@ module.exports = class Settings extends React.Component {
           key={id}
           snippet={snippet}
           title={snippet.details.title}
+          expanded={!this.props.getSetting('collapsedSnippets', []).includes(id)}
           manager={this.snippetManager}
           main={this.props.main}
         />

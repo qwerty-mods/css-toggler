@@ -39,7 +39,7 @@ function sendToast (id, enabled, callback) {
   });
 }
 
-const { updateSetting } = powercord.api.settings._fluxProps('css-toggler');
+const { getSetting, updateSetting } = powercord.api.settings._fluxProps('css-toggler');
 
 module.exports = class SnippetManager {
   constructor (main) {
@@ -73,6 +73,18 @@ module.exports = class SnippetManager {
     });
 
     return snippets;
+  }
+
+  toggleCollapse (id) {
+    const collapsedSnippets = getSetting('collapsedSnippets', []);
+
+    if (collapsedSnippets.includes(id)) {
+      collapsedSnippets.splice(collapsedSnippets.indexOf(id), 1);
+    } else {
+      collapsedSnippets.push(id);
+    }
+
+    updateSetting('collapsedSnippets', collapsedSnippets);
   }
 
   updateSnippetDetails (id, newDetails) {

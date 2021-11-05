@@ -7,6 +7,7 @@ const { getDefaultAvatarURL } = getModule([ 'getDefaultAvatarURL' ], false);
 const { default: Button } = getModule([ 'ButtonLink' ], false);
 const { default: Avatar } = getModule([ 'AnimatedAvatar' ], false);
 
+const Caret = getModuleByDisplayName('Caret', false);
 const TextInput = getModuleByDisplayName('TextInput', false);
 const parser = getModule([ 'parse', 'parseTopic' ], false);
 
@@ -25,6 +26,7 @@ module.exports = React.memo(props => {
   const [ title, setTitle ] = React.useState(props.title);
   const [ author, setAuthor ] = React.useState(userStore.getUser(snippet.author));
   const [ description, setDescription ] = React.useState(snippet.details?.description);
+  const [ expanded, setExpanded ] = React.useState(props.expanded);
   const [ editing, setEditing ] = React.useState(false);
 
   React.useEffect(async () => {
@@ -48,8 +50,15 @@ module.exports = React.memo(props => {
     props.manager.updateSnippetDetails(snippet.id, { title: isEmptyOrDefault ? '' : titleTrimmed });
   }, [ title ]);
 
+  const handleOnExpand = React.useCallback(() => {
+    setExpanded(!expanded);
+    setEditing(false);
+
+    props.manager.toggleCollapse(snippet.id);
+  }, [ expanded ]);
+
   return (
-    <div className='css-toggler-snippet-card' data-editing={editing}>
+    <div className='css-toggler-snippet-card' data-editing={editing} data-expanded={expanded} data-hasdescription={Boolean(description)}>
       <div className='card-header'>
         <div className='card-header-title'>
           <TextInput
@@ -76,6 +85,10 @@ module.exports = React.memo(props => {
           </Tooltip>
           {!props.enabled && '(cached)'}
         </div>
+
+        <Clickable onClick={handleOnExpand}>
+          <Caret className='card-header-expand-icon' expanded={expanded} aria-hidden={true} />
+        </Clickable>
       </div>
 
       <div className='card-body'>
@@ -95,20 +108,20 @@ module.exports = React.memo(props => {
           />
         </div>}
 
-        <div className='card-body-content'>
+        {expanded && <div className='card-body-content'>
           {parser.reactParserFor(parser.defaultRules)(
             `\`\`\`css\n/* ${Messages.CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE.format({ date: snippet.timestamp })} */\n\n${snippet.content}\n\`\`\``
           )}
-        </div>
+        </div>}
       </div>
 
-      <div className='card-footer'>
+      {expanded && <div className='card-footer'>
         <div className='card-footer-author'>
           <div className='card-footer-author-avatar'>
             <Avatar size={Avatar.Sizes.SIZE_32} src={author?.getAvatarURL() || getDefaultAvatarURL(snippet.author)}></Avatar>
           </div>
           <div className='card-footer-author-name'>
-            {author?.tag || Messages.UNKNWON_USER}
+            {author?.tag || Messages.UNKNOWN_USER}
           </div>
         </div>
 
@@ -148,7 +161,7 @@ module.exports = React.memo(props => {
             {props.enabled ? Messages.DISABLE : Messages.ENABLE}
           </Button>
         </div>
-      </div>
+      </div>}
     </div>
   );
 });
