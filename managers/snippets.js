@@ -8,36 +8,46 @@ const userProfileStore = getModule([ 'fetchProfile' ], false);
 
 const { transitionTo } = getModule([ 'transitionTo' ], false);
 
+let toasts = [];
+
 function sendToast (id, enabled, callback) {
   const statusText = enabled === true ? 'Enabled' : enabled === false ? 'Disabled' : 'Removed';
   const snippetDetails = this.snippetDetails[id]
 
   const toastId = `css-toggler-${id}-${Math.random().toString(36)}`;
+  toasts.push(toastId);
 
   powercord.api.notices.sendToast(toastId, {
     header: `${statusText} Snippet`,
     timeout: 5e3,
     content: `You've ${statusText.toLowerCase()} snippet '${snippetDetails?.title ? snippetDetails.title : id}'`,
     buttons: [
+      toasts.length > 1 && {
+        text: Messages.CSS_TOGGLER_DISMISS_ALL,
+        look: 'ghost',
+        size: 'small',
+        onClick: () => toasts.forEach(id => powercord.api.notices.closeToast(id))
+      },
       {
         text: Messages.DISMISS,
         look: 'ghost',
-        size: 'small',
-        onClick: () => powercord.api.notices.closeToast(toastId)
+        size: 'small'
       },
       {
         text: enabled === true ? Messages.DISABLE : enabled === false ? Messages.ENABLE : Messages.JUMP_TO_MESSAGE,
         look: 'ghost',
         size: 'small',
-        onClick: () => {
-          callback(id);
-
-          powercord.api.notices.closeToast(toastId);
-        }
+        onClick: () => callback(id)
       }
-    ]
+    ].filter(Boolean)
   });
 }
+
+powercord.api.notices.on('toastLeaving', (toastId) => {
+  if (toastId.startsWith('css-toggler-')) {
+    toasts = toasts.filter(id => toastId !== id);
+  }
+});
 
 const { getSetting, updateSetting } = powercord.api.settings._fluxProps('css-toggler');
 

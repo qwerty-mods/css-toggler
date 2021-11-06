@@ -6,6 +6,13 @@
   cursor: pointer !important;
 }
 
+.css-toggler-quick-css-jump-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
 .css-toggler-jump-icon {
   transform: rotateY(180deg);
 }
