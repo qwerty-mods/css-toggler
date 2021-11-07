@@ -1,18 +1,21 @@
 const { React, Flux, getModuleByDisplayName, getModule, i18n: { Messages } } = require('powercord/webpack');
-const { Flex, FormTitle, Icon, settings: { RadioGroup, SwitchItem } } = require('powercord/components');
+const { Flex, FormTitle, Icon, Button, settings: { RadioGroup, SwitchItem } } = require('powercord/components');
 const { waitFor } = require('powercord/util');
+const { open } = require("powercord/modal");
 
 const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
 const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
 
 const SnippetCard = require('./SnippetCard');
 let ConnectedSnippetCard;
+const NewSnippetModal = require('./NewSnippetModal');
 
 const SearchBar = getModule(m => m?.displayName === 'SearchBar' && m?.defaultProps.hasOwnProperty('isLoading'), false);
 const Tooltip = getModuleByDisplayName('Tooltip', false);
 const TabBar = getModuleByDisplayName('TabBar', false);
 
 const { tabBar, tabBarItem } = getModule([ 'tabBar', 'tabBarItem' ], false);
+const { marginLeft8 } = getModule(["marginLeft8"], false);
 const breadcrumbClasses = getModule([ 'breadcrumbInactive', 'breadcrumbActive' ], false);
 
 module.exports = class Settings extends React.Component {
@@ -33,14 +36,23 @@ module.exports = class Settings extends React.Component {
     }))(SnippetCard);
   }
 
-  renderSearchBar () {
-    return <SearchBar
-      query={this.state.query}
-      size={SearchBar.Sizes.MEDIUM}
-      placeholder={Messages.SEARCH}
-      onChange={(query) => this.setState({ query })}
-      onClear={() => this.setState({ query: '' })}
-    />;
+  renderTopBar () {
+    return <Flex>
+      <SearchBar
+        query={this.state.query}
+        size={SearchBar.Sizes.MEDIUM}
+        placeholder={Messages.SEARCH}
+        onChange={(query) => this.setState({ query })}
+        onClear={() => this.setState({ query: '' })}
+      />
+      <Button
+        className={marginLeft8}
+        color={Button.Colors.GREEN}
+        look={Button.Looks.FILLED}
+        size={Button.Sizes.SMALL}
+        onClick={() => open((props) => React.createElement(NewSnippetModal, {...props, main: this.props.main}))}
+      >{Messages.CSS_TOGGLER_SNIPPET_ADD_NEW}</Button>
+    </Flex>;
   }
 
   render () {
@@ -48,7 +60,7 @@ module.exports = class Settings extends React.Component {
       <div>
         {this.renderTabs()}
         {this.renderBreadcumb()}
-        {this.state.selectedItem === 'snippets' && this.renderSearchBar()}
+        {this.state.selectedItem === 'snippets' && this.renderTopBar()}
         {this.state.selectedItem === 'snippets' ? this.renderSnippets() : this.renderSettings()}
       </div>
     )

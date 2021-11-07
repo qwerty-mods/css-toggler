@@ -77,12 +77,13 @@ module.exports = React.memo(props => {
         </div>
 
         <div className='card-header-snippet-id'>
-          ID:&nbsp;
-          <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
+          {snippet.id != "1" && "ID:"}&nbsp;
+          {snippet.id != "1" && <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
             <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id)}>
               {snippet.id}&nbsp;
             </Clickable>
-          </Tooltip>
+          </Tooltip> }
+          {snippet.id == "1" && "Custom Snippet"}&nbsp;
           {!props.enabled && '(cached)'}
         </div>
 

@@ -2,6 +2,8 @@
   "CSS_TOGGLER_DISMISS_ALL": "Dismiss All",
   "CSS_TOGGLER_SNIPPETS_TITLE": "Snippets",
   "CSS_TOGGLER_SNIPPET_REMOVE": "Remove Snippet",
+  "CSS_TOGGLER_SNIPPET_ADD_NEW": "Add Snippet",
+  "CSS_TOGGLER_SNIPPET_FORMAT_LINE1": "Custom snippet applied the {date, date, medium} at {date, time, medium}",
   "CSS_TOGGLER_SNIPPET_TITLE_PLACEHOLDER": "Enter a title",
   "CSS_TOGGLER_SNIPPET_DESC_PLACEHOLDER": "How would you describe this snippet?",
   "CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE": "You applied this snippet on {date, date, long} at {date, time, short}",
