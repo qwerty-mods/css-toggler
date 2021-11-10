@@ -1,14 +1,14 @@
 const { React, Flux, getModuleByDisplayName, getModule, i18n: { Messages } } = require('powercord/webpack');
-const { Flex, FormTitle, Icon, Button, settings: { RadioGroup, SwitchItem } } = require('powercord/components');
+const { Button, Flex, FormTitle, Icon, settings: { RadioGroup, SwitchItem } } = require('powercord/components');
 const { waitFor } = require('powercord/util');
-const { open } = require("powercord/modal");
+const { open: openModal } = require('powercord/modal');
 
 const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
 const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
 
+const NewSnippetModal = require('./NewSnippetModal');
 const SnippetCard = require('./SnippetCard');
 let ConnectedSnippetCard;
-const NewSnippetModal = require('./NewSnippetModal');
 
 const SearchBar = getModule(m => m?.displayName === 'SearchBar' && m?.defaultProps.hasOwnProperty('isLoading'), false);
 const Tooltip = getModuleByDisplayName('Tooltip', false);
@@ -16,6 +16,7 @@ const TabBar = getModuleByDisplayName('TabBar', false);
 
 const { tabBar, tabBarItem } = getModule([ 'tabBar', 'tabBarItem' ], false);
 const { marginLeft8 } = getModule(["marginLeft8"], false);
+
 const breadcrumbClasses = getModule([ 'breadcrumbInactive', 'breadcrumbActive' ], false);
 
 module.exports = class Settings extends React.Component {
@@ -30,9 +31,9 @@ module.exports = class Settings extends React.Component {
       selectedItem: 'snippets'
     };
 
-    ConnectedSnippetCard = Flux.connectStores([ this.snippetStore ], ({ snippet }) => ({
-      removed: !this.snippetStore.getSnippet(snippet.id),
-      enabled: this.snippetStore.isEnabled(snippet.id)
+    ConnectedSnippetCard = Flux.connectStores([ this.snippetStore ], ({ id }) => ({
+      snippet: this.snippetStore.getSnippet(id, { includeDetails: true }),
+      enabled: this.snippetStore.isEnabled(id)
     }))(SnippetCard);
   }
 
@@ -50,8 +51,10 @@ module.exports = class Settings extends React.Component {
         color={Button.Colors.GREEN}
         look={Button.Looks.FILLED}
         size={Button.Sizes.SMALL}
-        onClick={() => open((props) => React.createElement(NewSnippetModal, {...props, main: this.props.main}))}
-      >{Messages.CSS_TOGGLER_SNIPPET_ADD_NEW}</Button>
+        onClick={() => openModal((props) => <NewSnippetModal {...props} main={this.props.main} />)}
+      >
+        {Messages.CSS_TOGGLER_SNIPPET_ADD_NEW}
+      </Button>
     </Flex>;
   }
 
@@ -146,21 +149,16 @@ module.exports = class Settings extends React.Component {
 
         return snippetAuthorId1 === currentUserId ? -1 : snippetAuthorId2 === currentUserId ? 1 : 0;
       }
-    }).map(id => {
-      const snippet = snippets[id];
-      snippet.id = id;
-
-      return (
-        <ConnectedSnippetCard
-          key={id}
-          snippet={snippet}
-          title={snippet.details.title}
-          expanded={!this.props.getSetting('collapsedSnippets', []).includes(id)}
-          manager={this.snippetManager}
-          main={this.props.main}
-        />
-      );
-    });
+    }).map((id, index) => (
+      <ConnectedSnippetCard
+        id={id}
+        key={id}
+        index={index + 1}
+        expanded={!this.props.getSetting('collapsedSnippets', []).includes(id)}
+        manager={this.snippetManager}
+        main={this.props.main}
+      />
+    ));
   }
 
   renderSettings () {

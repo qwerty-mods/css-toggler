@@ -196,16 +196,16 @@ module.exports = class SnippetManager {
         throw new Error(`Unable to fetch snippet author for '${id}'!`);
       }
 
-      this.main.moduleManager._applySnippet({
+      await this.main.moduleManager._applySnippet({
         id,
         author,
         content: `\`\`\`css\n${snippet.content}\n\`\`\``
       });
 
-      FluxDispatcher.dirtyDispatch({
-        type: FluxActions.SNIPPET_ENABLE,
-        id
-      });
+      // FluxDispatcher.dirtyDispatch({
+      //   type: FluxActions.SNIPPET_ENABLE,
+      //   id
+      // });
 
       return snippet;
     } else {

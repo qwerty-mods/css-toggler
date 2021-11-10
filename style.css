@@ -7,14 +7,26 @@
 }
 
 .css-toggler-quick-css-jump-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   margin-left: 5px;
   vertical-align: middle;
+  background: var(--background-secondary);
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0 5px;
 }
 
 .css-toggler-jump-icon {
   transform: rotateY(180deg);
+}
+
+.css-toggler-new-snippet-modal .modal-content {
+  margin: 10px 0;
+}
+
+.css-toggler-new-snippet-modal .modal-content .divider-3573oO {
+  display: none;
 }
 
 .css-toggler-snippet-card {

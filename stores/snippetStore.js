@@ -62,29 +62,56 @@ function handleRemoveSnippet (id, options) {
 const settings = powercord.api.settings._fluxProps('css-toggler');
 const snippetDetails = settings.getSetting('snippetDetails', {});
 
-class SnippetStore extends Flux.Store {
-  getSnippet (id, cachedOnly = false) {
-    if (!cachedOnly && snippets[id]) {
-      const snippet = snippets[id];
+/**
+ * Snippet type definition
+ * @typedef {Object} Snippet
+ * @property {string} id - The ID of the snippet.
+ * @property {string} author - The author of the snippet.
+ * @property {string} content - The content of the snippet.
+ * @property {number} timestamp - The timestamp of the snippet.
+ * @property {Object} details - The details of the snippet.
+ * @property {string} details.name - The name of the snippet.
+ * @property {string} details.description - The description of the snippet.
+ */
 
-      return { id, ...snippet };
+class SnippetStore extends Flux.Store {
+  /**
+   * Returns an existing snippet (i.e. cached or enabled) by its ID.
+   * @param {string} id - The ID of the snippet to fetch.
+   * @param {Object} options - Options for fetching a snippet.
+   * @param {boolean} options.includeDetails - Whether to include the snippet's details.
+   * @param {boolean} options.cachedOnly - Whether to only return a cached snippet.
+   */
+
+  getSnippet (id, options) {
+    if (!options?.cachedOnly && snippets[id]) {
+      const snippet = { id, ...snippets[id] };
+
+      if (options?.includeDetails === true) {
+        snippet.details = snippetDetails[id];
+      }
+
+      return snippet;
     }
 
-    return cachedSnippets.find(snippet => snippet.id === id);
+    const snippet = cachedSnippets.find(snippet => snippet.id === id);
+
+    if (snippet && options?.includeDetails === true) {
+      snippet.details = snippetDetails[id];
+    }
+
+    return snippet;
   }
 
+  /**
+   * Returns all snippets following the specified criteria.
+   * @param {Object} options - Options for fetching snippets.
+   * @param {boolean} options.includeDetails - Whether to include the snippet's details.
+   * @param {boolean} options.includeCached - Whether to include cached snippets.
+   * @param {boolean} options.cachedOnly - Whether to only return cached snippets.
+   */
   getSnippets (options) {
     let indexCounter = 0;
-    const _$snippets = { ...snippets };
-
-    if (options?.includeDetails === true) {
-      for (const id in _$snippets) {
-        _$snippets[id] = {
-          ..._$snippets[id],
-          details: snippetDetails[id] || (indexCounter += 1, { title: `Untitled Snippet #${indexCounter}` })
-        };
-      }
-    }
 
     const _$cachedSnippets = cachedSnippets.reduce((cachedSnippets, snippet) => {
       if (options?.includeDetails === true) {
@@ -101,6 +128,12 @@ class SnippetStore extends Flux.Store {
       return _$cachedSnippets;
     }
 
+    const _$snippets = { ...snippets };
+
+    if (options?.includeDetails === true) {
+      Object.keys(_$snippets).forEach(id => _$snippets[id].details = snippetDetails[id] || (indexCounter += 1, { title: `Untitled Snippet #${indexCounter}` }));
+    }
+
     if (options?.includeCached === true) {
       Object.assign(_$snippets, { ..._$cachedSnippets });
     }
@@ -108,10 +141,18 @@ class SnippetStore extends Flux.Store {
     return _$snippets;
   }
 
+  /**
+   * Returns all snippets stored within the cache.
+   */
   getCachedSnippets () {
     return cachedSnippets;
   }
 
+  /**
+   * Checks if a snippet is cached (enabled or disabled).
+   * @param {string} id - The ID of the snippet to check.
+   * @returns {boolean} Whether the snippet is cached.
+   */
   isEnabled (id) {
     return !cachedSnippets.find(cachedSnippet => cachedSnippet.id === id);
   }

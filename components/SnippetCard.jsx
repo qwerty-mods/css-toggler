@@ -19,11 +19,13 @@ const { MAX_SNIPPET_TITLE_LENGTH, MAX_SNIPPET_DESCRIPTION_LENGTH, DEFAULT_SNIPPE
 module.exports = React.memo(props => {
   const snippet = props.snippet;
 
-  if (!snippet || props.removed) {
+  if (!snippet) {
     return null;
   }
 
-  const [ title, setTitle ] = React.useState(props.title);
+  const defaultTitle = `${DEFAULT_SNIPPET_TITLE} #${props.index}`;
+
+  const [ title, setTitle ] = React.useState(snippet.details?.title || defaultTitle);
   const [ author, setAuthor ] = React.useState(userStore.getUser(snippet.author));
   const [ description, setDescription ] = React.useState(snippet.details?.description);
   const [ expanded, setExpanded ] = React.useState(props.expanded);
@@ -44,7 +46,7 @@ module.exports = React.memo(props => {
 
     const isEmptyOrDefault = titleTrimmed === '' || titleTrimmed.startsWith(DEFAULT_SNIPPET_TITLE);
     if (isEmptyOrDefault) {
-      setTitle(titleTrimmed === '' ? DEFAULT_SNIPPET_TITLE : titleTrimmed);
+      setTitle(titleTrimmed === '' ? defaultTitle : titleTrimmed);
     }
 
     props.manager.updateSnippetDetails(snippet.id, { title: isEmptyOrDefault ? '' : titleTrimmed });
@@ -77,13 +79,15 @@ module.exports = React.memo(props => {
         </div>
 
         <div className='card-header-snippet-id'>
-          {snippet.id != "1" && "ID:"}&nbsp;
-          {snippet.id != "1" && <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
-            <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id)}>
-              {snippet.id}&nbsp;
-            </Clickable>
-          </Tooltip> }
-          {snippet.id == "1" && "Custom Snippet"}&nbsp;
+          {snippet.id !== '1' && <>
+            ID:&nbsp;
+            <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
+              <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id)}>
+                {snippet.id}&nbsp;
+              </Clickable>
+            </Tooltip>
+          </>}
+          {snippet.id === '1' && 'Custom Snippet'}&nbsp;
           {!props.enabled && '(cached)'}
         </div>
 

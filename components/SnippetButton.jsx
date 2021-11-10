@@ -4,29 +4,26 @@ const { Clickable } = require('powercord/components');
 const SnippetButton = React.memo(props => {
   const [ applied, setApplied ] = React.useState(props.applied);
 
-  const callback = React.useCallback(() => setApplied(!applied), [ applied ]);
+  const handleOnClick = React.useCallback(async () => {
+    const method = props.applied ? 'removeSnippet' : 'addSnippet';
+    const argument = props.applied ? props.message.id : props.message;
+
+    try {
+      props.main.snippetManager[method](argument);
+    } catch (e) {
+      props.main.error(e);
+    }
+
+    setApplied(!applied);
+  }, [ applied ]);
 
   return (
     <div className='powercord-snippet-apply'>
-      <Clickable onClick={() => {
-        try {
-          if (props.applied) {
-            props.main.snippetManager.removeSnippet(props.message.id);
-          } else {
-            props.main.snippetManager.addSnippet(props.message);
-          }
-        } catch (e) {
-          props.main.error(e);
-        }
-
-        callback();
-      }}>
+      <Clickable onClick={handleOnClick}>
         {props.applied ? Messages.CSS_TOGGLER_SNIPPET_REMOVE : Messages.POWERCORD_SNIPPET_APPLY}
       </Clickable>
     </div>
   );
 });
-
-SnippetButton.displayName = 'SnippetButton';
 
 module.exports = SnippetButton;
