@@ -76,21 +76,19 @@ module.exports = class SnippetCreator extends React.PureComponent {
 
               // Attempt to create custom snippet
               try {
-                let css = '\n\n/**\n';
-                const line1 = Messages.CSS_TOGGLER_SNIPPET_FORMAT_LINE1.format({ date: new Date() });
-                const line2 = Messages.POWERCORD_SNIPPET_LINE2.format({
-                  authorTag: this.currentUser.tag,
-                  authorId: this.currentUser.id
-                });
-
                 let customId = 1;
                 while (this.props.main.snippetStore.getSnippet(customId.toString()) != undefined) {
                   customId++;
                 }
 
-                css += ` * ${line1}\n * ${line2}\n * Snippet ID: ${customId.toString()}\n */\n${this.state.snippet}\n/** ${customId.toString()} */\n`;
-
-                this.props.main.moduleManager._saveQuickCSS(this.props.main.moduleManager._quickCSS + css);
+                this.props.main.snippetManager.addSnippet({
+                  id: customId.toString(),
+                  content: this.state.snippet,
+                  author: {
+                    tag: this.currentUser.tag,
+                    id: this.currentUser.id
+                  }
+                });
 
                 this.props.main.snippetManager.updateSnippetDetails(customId.toString(), {
                   title: this.state.title,

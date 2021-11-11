@@ -37,7 +37,7 @@ function handleEnableSnippet (id) {
 function handleDisableSnippet (id) {
   const snippet = {
     id,
-    ...(({ author, content, timestamp }) => ({ author, content, timestamp }))(snippets[id])
+    ...(({ author, channel, content, timestamp }) => ({ author, channel, content, timestamp }))(snippets[id])
   };
 
   cachedSnippets.push(snippet);
@@ -66,6 +66,7 @@ const snippetDetails = settings.getSetting('snippetDetails', {});
  * Snippet type definition
  * @typedef {Object} Snippet
  * @property {string} id - The ID of the snippet.
+ * @property {string|undefined} channel - The ID of the channel the snippet was submitted in.
  * @property {string} author - The author of the snippet.
  * @property {string} content - The content of the snippet.
  * @property {number} timestamp - The timestamp of the snippet.
@@ -149,9 +150,9 @@ class SnippetStore extends Flux.Store {
   }
 
   /**
-   * Checks if a snippet is cached (enabled or disabled).
-   * @param {string} id - The ID of the snippet to check.
-   * @returns {boolean} Whether the snippet is cached.
+   * Checks if a snippet is enabled (not cached).
+   * @param {string} id - The ID of the snippet to check for.
+   * @returns {boolean} Whether the snippet is enabled.
    */
   isEnabled (id) {
     return !cachedSnippets.find(cachedSnippet => cachedSnippet.id === id);

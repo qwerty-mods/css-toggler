@@ -4,6 +4,7 @@ const { FluxActions } = require('../constants');
 
 const moment = getModule([ 'momentProperties' ], false);
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
+const channelStore = getModule([ 'getDMFromUserId', 'getChannel' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
 
 const { transitionTo } = getModule([ 'transitionTo' ], false);
@@ -71,9 +72,14 @@ module.exports = class SnippetManager {
         const id = header.match(/Snippet ID: (\d+)/)[1];
         const appliedString = header.match(/(\w+ \d+, \d{4}(.+ )?\d+:\d+:\d+ \w+)|(\d+ \w+ \d+(.+ )?\d+:\d+:\d+)/)[0];
         const appliedTimestamp = moment(appliedString, 'DD MMM YYYY HH:mm:ss').valueOf() || moment(appliedString, 'MMM DD YYYY at HH:mm:ss A').valueOf();
+        const channel = header.match(/#.+ \((\d{16,20})\) /)?.[1];
         const author = header.match(/#\d{4} \((\d{16,20})\)/)[1];
 
-        snippets[id] = { header, content, footer, author, timestamp: appliedTimestamp };
+        snippets[id] = { header, content, footer, author, channel, timestamp: appliedTimestamp };
+
+        if (!channel) {
+          delete snippets[id].channel;
+        }
       }
     }
 
@@ -122,10 +128,17 @@ module.exports = class SnippetManager {
     updateSetting('snippetDetails', this.snippetDetails);
   }
 
-  jumpToSnippet (messageId) {
+  jumpToSnippet (messageId, channelId) {
+    let guildId;
+
     FluxDispatcher.dirtyDispatch({ type: ActionTypes.LAYER_POP });
 
-    transitionTo(Routes.CHANNEL(GUILD_ID, CSS_SNIPPETS, messageId));
+    if (channelId) {
+      const channel = channelStore.getChannel(channelId);
+      guildId = channel.guild_id;
+    }
+
+    transitionTo(Routes.CHANNEL(guildId || GUILD_ID, channelId || CSS_SNIPPETS, messageId));
   }
 
   async removeSnippet (id, options) {
@@ -180,10 +193,53 @@ module.exports = class SnippetManager {
     const snippet = this.snippetStore.getSnippet(message.id);
 
     if (!snippet) {
-      this.main.moduleManager._applySnippet(message);
+      if (message.channel_id === CSS_SNIPPETS) {
+        this.main.moduleManager._applySnippet(message);
+      } else {
+        this.applySnippet(message, message.id < 4194304);
+      }
     } else {
       throw new Error(`Snippet '${snippet.id}' already exists!`);
     }
+  }
+
+  applySnippet (message, customSnippet = false) {
+    let quickCSS = this.main.moduleManager._quickCSS;
+    let css = '\n\n/**\n';
+
+    const channel = channelStore.getChannel(message.channel_id);
+
+    let line1 = Messages[customSnippet ? 'CSS_TOGGLER_SNIPPET_FORMAT_LINE1' : 'POWERCORD_SNIPPET_LINE1'].format({ date: new Date() });
+
+    if (channel && channel.id !== CSS_SNIPPETS) {
+      line1 = line1.replace('css-snippets', `${channel.name} (${channel.id})`);
+    }
+
+    const line2 = Messages.POWERCORD_SNIPPET_LINE2.format({
+      authorTag: message.author.tag,
+      authorId: message.author.id
+    });
+
+    css += ` * ${line1}\n`;
+    css += ` * ${line2}\n`;
+    css += ` * Snippet ID: ${message.id}\n`;
+    css += ' */\n';
+
+    if (customSnippet) {
+      css += `${message.content}\n`;
+    } else {
+      for (const match of message.content.matchAll(/`{3}css\n([\s\S]*)`{3}/ig)) {
+        let snippet = match[1].trim();
+
+        css += `${snippet}\n`;
+      }
+    }
+
+    css += `/** ${message.id} */\n`;
+
+    quickCSS += css;
+
+    this.main.moduleManager._saveQuickCSS(quickCSS);
   }
 
   async enableSnippet (id) {
@@ -196,11 +252,21 @@ module.exports = class SnippetManager {
         throw new Error(`Unable to fetch snippet author for '${id}'!`);
       }
 
-      await this.main.moduleManager._applySnippet({
+      const defaultArgs = {
         id,
         author,
         content: `\`\`\`css\n${snippet.content}\n\`\`\``
-      });
+      };
+
+      if (snippet.channel) {
+        defaultArgs.channel_id = snippet.channel;
+      }
+
+      if (snippet.channel || snippet.id < 4194304) {
+        this.applySnippet(defaultArgs, snippet.id < 4194304);
+      } else {
+        this.main.moduleManager._applySnippet(defaultArgs);
+      }
 
       // FluxDispatcher.dirtyDispatch({
       //   type: FluxActions.SNIPPET_ENABLE,

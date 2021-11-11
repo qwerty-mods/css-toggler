@@ -84,7 +84,7 @@ module.exports = React.memo(props => {
           {parseInt(snippet.id) >= 4194304 && <>
             ID:&nbsp;
             <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
-              <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id)}>
+              <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id, snippet.channel)}>
                 {snippet.id}&nbsp;
               </Clickable>
             </Tooltip>

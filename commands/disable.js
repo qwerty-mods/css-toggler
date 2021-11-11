@@ -31,13 +31,14 @@ module.exports = {
     }
 
     const snippets = main.snippetStore.getSnippets({ includeDetails: true });
+    const snippetIds = Object.keys(snippets);
 
     return {
-      commands: Object.keys(snippets).filter(id => id.includes(args[0])).map(id => ({
+      commands: snippetIds.filter(id => id.includes(args[0])).map(id => ({
         command: id,
         description: snippets[id].details.title
       })),
-      header: 'Available Snippets'
+      header: `Available Snippets (${snippetIds.length})`
     };
   }
 };

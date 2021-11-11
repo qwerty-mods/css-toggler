@@ -154,6 +154,12 @@
 
 .css-toggler-snippet-card .card-footer-author-avatar {
   margin-right: 8px;
+  border-radius: 50%;
+  filter: drop-shadow(var(--elevation-medium));
+}
+
+.css-toggler-snippet-card .card-footer-author-avatar:active {
+  transform: translateY(1px);
 }
 
 .css-toggler-snippet-card .card-footer-author-name {

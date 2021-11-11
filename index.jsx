@@ -1,6 +1,5 @@
 const { Plugin } = require('powercord/entities');
 const { React, Flux, getModule, getModuleByDisplayName, i18n: { Messages } } = require('powercord/webpack');
-const { SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
 const { Clickable, Tooltip, Icon } = require('powercord/components');
 const { resolveCompiler } = require('powercord/compilers');
 const { findInReactTree } = require('powercord/util');
@@ -128,16 +127,26 @@ module.exports = class CSSToggler extends Plugin {
     const MiniPopover = await getModule(m => m.default?.displayName === 'MiniPopover');
     this.inject('css-toggler-snippet-button', MiniPopover, 'default', (_, res) => {
       const props = findInReactTree(res, n => n && n.message && n.setPopout);
-      if (!props || props.channel.id !== CSS_SNIPPETS) {
+      if (!props || !props.message) {
         return res;
       }
+
+      const { message } = props;
+
+      const defaultProps = {
+        message,
+        moduleManager: this.moduleManager,
+        main: this
+      };
 
       const __$oldSnippetButton = findInReactTree(res.props.children, n => n.type?.name === 'SnippetButton');
       if (__$oldSnippetButton) {
         const buttons = res.props.children;
         const snippetButtonIndex = buttons.findIndex(n => n === __$oldSnippetButton);
 
-        buttons.splice(snippetButtonIndex, 1, <ConnectedSnippetButton message={props.message} moduleManager={this.moduleManager} main={this} />);
+        buttons.splice(snippetButtonIndex, 1, <ConnectedSnippetButton {...defaultProps} />);
+      } else if (message.content.match(/`{3}css\n([\s\S]*)`{3}/ig)) {
+        res.props.children.unshift(<ConnectedSnippetButton {...defaultProps} />);
       }
 
       return res;
