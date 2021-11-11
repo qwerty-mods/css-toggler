@@ -83,11 +83,16 @@ module.exports = class SnippetCreator extends React.PureComponent {
                   authorId: currentUser.id
                 });
 
-                css += ` * ${line1}\n * ${line2}\n * Snippet ID: 1\n */\n${this.state.snippet}\n/** 1 */\n`;
+                let customId = 0;
+                while (this.props.main.snippetStore.getSnippet(customId.toString()) != undefined) {
+                  customId++;
+                }
+
+                css += ` * ${line1}\n * ${line2}\n * Snippet ID: ${customId.toString()}\n */\n${this.state.snippet}\n/** ${customId.toString()} */\n`;
 
                 this.props.main.moduleManager._saveQuickCSS(this.props.main.moduleManager._quickCSS + css);
 
-                this.props.main.snippetManager.updateSnippetDetails('1', {
+                this.props.main.snippetManager.updateSnippetDetails(customId.toString(), {
                   title: this.state.title,
                   description: this.state.description
                 });
