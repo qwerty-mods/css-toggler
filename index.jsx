@@ -34,10 +34,18 @@ module.exports = class CSSToggler extends Plugin {
     this.snippetManager = new SnippetManager(this);
 
     powercord.api.i18n.loadAllStrings(i18n);
+
+    const ConnectedSettings = Flux.connectStores([ this.snippetStore ], () => ({
+      snippets: this.snippetStore.getSnippets({
+        includeCached: true,
+        includeDetails: true
+      })
+    }))(Settings);
+
     powercord.api.settings.registerSettings(this.entityID, {
       category: 'css-toggler',
       label: 'CSS Toggler',
-      render: (props) => React.createElement(Settings, {
+      render: (props) => React.createElement(ConnectedSettings, {
         ...props,
         main: this
       })

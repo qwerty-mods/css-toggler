@@ -3,14 +3,15 @@ const { TextAreaInput } = require('powercord/components/settings');
 const { Tooltip, Clickable } = require('powercord/components');
 
 const { getDefaultAvatarURL } = getModule([ 'getDefaultAvatarURL' ], false);
+const { openUserProfileModal } = getModule([ 'openUserProfileModal' ], false);
 
 const { default: Button } = getModule([ 'ButtonLink' ], false);
 const { default: Avatar } = getModule([ 'AnimatedAvatar' ], false);
 
 const Caret = getModuleByDisplayName('Caret', false);
 const TextInput = getModuleByDisplayName('TextInput', false);
-const parser = getModule([ 'parse', 'parseTopic' ], false);
 
+const parser = getModule([ 'parse', 'parseTopic' ], false);
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
 
@@ -52,6 +53,7 @@ module.exports = React.memo(props => {
     props.manager.updateSnippetDetails(snippet.id, { title: isEmptyOrDefault ? '' : titleTrimmed });
   }, [ title ]);
 
+  const handleOnAvatarClick = () => openUserProfileModal({ userId: snippet.author });
   const handleOnExpand = React.useCallback(() => {
     setExpanded(!expanded);
     setEditing(false);
@@ -79,7 +81,7 @@ module.exports = React.memo(props => {
         </div>
 
         <div className='card-header-snippet-id'>
-          {parseInt(snippet.id) > 1000000 && <>
+          {parseInt(snippet.id) >= 4194304 && <>
             ID:&nbsp;
             <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
               <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id)}>
@@ -87,7 +89,7 @@ module.exports = React.memo(props => {
               </Clickable>
             </Tooltip>
           </>}
-          {parseInt(snippet.id) < 1000000 && 'Custom Snippet'}&nbsp;
+          {parseInt(snippet.id) < 4194304 && 'Custom Snippet'}&nbsp;
           {!props.enabled && '(cached)'}
         </div>
 
@@ -123,7 +125,9 @@ module.exports = React.memo(props => {
       {expanded && <div className='card-footer'>
         <div className='card-footer-author'>
           <div className='card-footer-author-avatar'>
-            <Avatar size={Avatar.Sizes.SIZE_32} src={author?.getAvatarURL() || getDefaultAvatarURL(snippet.author)}></Avatar>
+            <Tooltip text={Messages.VIEW_PROFILE} delay={500}>
+              <Avatar size={Avatar.Sizes.SIZE_32} src={author?.getAvatarURL() || getDefaultAvatarURL(snippet.author)} onClick={handleOnAvatarClick} />
+            </Tooltip>
           </div>
           <div className='card-footer-author-name'>
             {author?.tag || Messages.UNKNOWN_USER}
@@ -157,7 +161,7 @@ module.exports = React.memo(props => {
             color={Button.Colors.BRAND}
             onClick={async () => {
               try {
-                await props.manager.toggleSnippet(snippet.id, { showToast: true })
+                await props.manager.toggleSnippet(snippet.id, { showToast: true });
               } catch (e) {
                 props.main.error(e);
               }

@@ -109,10 +109,7 @@ module.exports = class Settings extends React.Component {
   }
 
   renderSnippets () {
-    const snippets = this.snippetStore.getSnippets({
-      includeDetails: true,
-      includeCached: true
-    });
+    const { snippets } = this.props;
 
     const sortOption = this.props.getSetting('sort', 'default');
     const prioritizeSelf = this.props.getSetting('sort-me');

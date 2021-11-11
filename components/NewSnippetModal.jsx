@@ -4,7 +4,6 @@ const { close: closeModal } = require('powercord/modal');
 
 const Modal = getModule([ 'ModalRoot' ], false);
 const Header = getModule(m => m?.displayName === 'Header' && m?.Sizes, false);
-const currentUser = getModule([ 'getUser', 'getCurrentUser' ], false).getCurrentUser();
 
 const { default: HelpMessage, HelpMessageTypes } = getModule([ 'HelpMessageTypes' ], false);
 const { MAX_SNIPPET_TITLE_LENGTH, MAX_SNIPPET_DESCRIPTION_LENGTH } = require('../constants');
@@ -13,6 +12,7 @@ module.exports = class SnippetCreator extends React.PureComponent {
   constructor (props) {
     super(props);
 
+    this.currentUser = getModule([ 'getUser', 'getCurrentUser' ], false).getCurrentUser();
     this.state = {
       title: '',
       description: '',
@@ -79,11 +79,11 @@ module.exports = class SnippetCreator extends React.PureComponent {
                 let css = '\n\n/**\n';
                 const line1 = Messages.CSS_TOGGLER_SNIPPET_FORMAT_LINE1.format({ date: new Date() });
                 const line2 = Messages.POWERCORD_SNIPPET_LINE2.format({
-                  authorTag: currentUser.tag,
-                  authorId: currentUser.id
+                  authorTag: this.currentUser.tag,
+                  authorId: this.currentUser.id
                 });
 
-                let customId = 0;
+                let customId = 1;
                 while (this.props.main.snippetStore.getSnippet(customId.toString()) != undefined) {
                   customId++;
                 }
