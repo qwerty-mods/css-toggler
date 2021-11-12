@@ -118,7 +118,7 @@ module.exports = class Settings extends React.Component {
       const lowerCaseQuery = this.state.query.toLowerCase();
 
       if (this.state.query !== '') {
-        return (snippet.details?.title?.toLowerCase())?.includes(lowerCaseQuery) || (snippet.details?.description?.toLowerCase())?.includes(lowerCaseQuery);
+        return (snippet.details?.title?.toLowerCase())?.includes(lowerCaseQuery) || (snippet.details?.description?.toLowerCase())?.includes(lowerCaseQuery) || (id.includes(lowerCaseQuery));
       }
 
       return id;
