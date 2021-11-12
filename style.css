@@ -1,3 +1,4 @@
+/* Settings */
 .css-toggler-settings-tab-bar {
   margin-bottom: 25px;
 }
@@ -6,6 +7,7 @@
   cursor: pointer !important;
 }
 
+/* Jump Icons */
 .css-toggler-quick-css-jump-icon {
   width: 24px;
   height: 24px;
@@ -21,6 +23,7 @@
   transform: rotateY(180deg);
 }
 
+/* New Snippet Modal */
 .css-toggler-new-snippet-modal .modal-content {
   margin: 10px 0;
 }
@@ -29,6 +32,7 @@
   display: none;
 }
 
+/* Snippet Card */
 .css-toggler-snippet-card {
   border-radius: 8px;
   background-color: var(--background-secondary);
@@ -133,6 +137,44 @@
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+.css-toggler-snippet-card .card-body-content .powercord-quickcss-header {
+  background-color: rgba(0, 0, 0, .1);
+  border: 1px solid var(--background-tertiary);
+  border-radius: 5px 5px 0 0;
+  border-bottom: none;
+  padding: 7px 10px;
+}
+
+.css-toggler-snippet-card .card-body-content .powercord-quickcss-editor {
+  background-color: rgba(0, 0, 0, .1);
+  border: 1px solid var(--background-tertiary);
+  border-bottom: none;
+  border-top: none;
+}
+
+.css-toggler-snippet-card .card-body-content .powercord-quickcss-editor .CodeMirror-gutters {
+  background-color: var(--background-secondary-alt);
+}
+
+.css-toggler-snippet-card .card-body-content .powercord-quickcss-footer {
+  background-color: rgba(0, 0, 0, .1);
+  border: 1px solid var(--background-tertiary);
+  border-radius: 0 0 5px 5px;
+  border-top: none;
+}
+
+/* .css-toggler-snippet-card .card-body-content .card-body-content-input-box {
+  font-size: 14px;
+}
+
+.css-toggler-snippet-card .card-body-content > div {
+  margin-bottom: 0;
+}
+
+.css-toggler-snippet-card .card-body-content .divider-3573oO {
+  display: none;
+} */
 
 .css-toggler-snippet-card .card-body-content pre .hljs {
   background-color: var(--background-secondary-alt);

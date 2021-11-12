@@ -101,7 +101,7 @@ module.exports = class SnippetCreator extends React.PureComponent {
               }
             }}
           >
-            {Messages.SAVE}
+            {Messages.SUBMIT}
           </Button>
           <Button
             color={Button.Colors.TRANSPARENT}

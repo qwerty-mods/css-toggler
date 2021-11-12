@@ -15,6 +15,8 @@ const parser = getModule([ 'parse', 'parseTopic' ], false);
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
 
+const CodeEditor = require('./CodeEditor');
+
 const { MAX_SNIPPET_TITLE_LENGTH, MAX_SNIPPET_DESCRIPTION_LENGTH, DEFAULT_SNIPPET_TITLE } = require('../constants');
 
 module.exports = React.memo(props => {
@@ -115,10 +117,17 @@ module.exports = React.memo(props => {
           />
         </div>}
 
-        {expanded && <div className='card-body-content'>
+        {!editing && expanded && <div className='card-body-content'>
           {parser.reactParserFor(parser.defaultRules)(
             `\`\`\`css\n/* ${Messages.CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE.format({ date: snippet.timestamp })} */\n\n${snippet.content}\n\`\`\``
           )}
+        </div>}
+
+        {editing && <div className='card-body-content'>
+          <CodeEditor
+            value={snippet.content}
+            onChange={(value) => props.manager.updateSnippet(snippet.id, value)}
+          />
         </div>}
       </div>
 

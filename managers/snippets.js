@@ -103,6 +103,19 @@ module.exports = class SnippetManager {
     updateSetting('collapsedSnippets', collapsedSnippets);
   }
 
+  jumpToSnippet (messageId, channelId) {
+    let guildId;
+
+    FluxDispatcher.dirtyDispatch({ type: ActionTypes.LAYER_POP });
+
+    if (channelId) {
+      const channel = channelStore.getChannel(channelId);
+      guildId = channel.guild_id;
+    }
+
+    transitionTo(Routes.CHANNEL(guildId || GUILD_ID, channelId || CSS_SNIPPETS, messageId));
+  }
+
   updateSnippetDetails (id, newDetails) {
     if (typeof newDetails !== 'object') {
       return;
@@ -128,17 +141,27 @@ module.exports = class SnippetManager {
     updateSetting('snippetDetails', this.snippetDetails);
   }
 
-  jumpToSnippet (messageId, channelId) {
-    let guildId;
+  async updateSnippet (id, content) {
+    const snippet = this.snippetStore.getSnippet(id);
 
-    FluxDispatcher.dirtyDispatch({ type: ActionTypes.LAYER_POP });
+    if (snippet) {
+      if (snippet.content === content) {
+        return;
+      }
 
-    if (channelId) {
-      const channel = channelStore.getChannel(channelId);
-      guildId = channel.guild_id;
+      let quickCSS = this.main.moduleManager._quickCSS;
+      const match = quickCSS.match(new RegExp(`${global._.escapeRegExp(`${snippet.header}\n${snippet.content}\n${snippet.footer}`)}`));
+
+      if (match) {
+        const newSnippet = match[0].replace(snippet.content, content);
+
+        quickCSS = quickCSS.replace(match[0], newSnippet);
+
+        await this.main.moduleManager._saveQuickCSS(quickCSS);
+      }
+    } else {
+      throw new Error(`Snippet '${id}' not found!`);
     }
-
-    transitionTo(Routes.CHANNEL(guildId || GUILD_ID, channelId || CSS_SNIPPETS, messageId));
   }
 
   async removeSnippet (id, options) {
