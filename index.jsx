@@ -146,7 +146,8 @@ module.exports = class CSSToggler extends Plugin {
 
         buttons.splice(snippetButtonIndex, 1, <ConnectedSnippetButton {...defaultProps} />);
       } else if (message.content.match(/`{3}css\n([\s\S]*)`{3}/ig)) {
-        res.props.children.unshift(<ConnectedSnippetButton {...defaultProps} />);
+        console.log(res.props.children)
+        res.props.children.splice(res.props.children.length-1, 0, <ConnectedSnippetButton {...defaultProps} />);
       }
 
       return res;
