@@ -118,13 +118,13 @@ module.exports = React.memo(props => {
           />
         </div>}
 
-        {!editing && expanded && <div className='card-body-content'>
+        {(!props.enabled || !editing) && expanded && <div className='card-body-content'>
           {parser.reactParserFor(parser.defaultRules)(
             `\`\`\`css\n/* ${Messages.CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE.format({ date: snippet.timestamp })} */\n\n${snippet.content}\n\`\`\``
           )}
         </div>}
 
-        {editing && <div className='card-body-content'>
+        {props.enabled && editing && <div className='card-body-content'>
           <CodeMirrorEditor
             value={snippet.content}
             onChange={(value) => props.manager.updateSnippet(snippet.id, value)}
