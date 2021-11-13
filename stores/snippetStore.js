@@ -83,7 +83,6 @@ class SnippetStore extends Flux.Store {
    * @param {boolean} options.includeDetails - Whether to include the snippet's details.
    * @param {boolean} options.cachedOnly - Whether to only return a cached snippet.
    */
-
   getSnippet (id, options) {
     if (!options?.cachedOnly && snippets[id]) {
       const snippet = { id, ...snippets[id] };
@@ -151,7 +150,7 @@ class SnippetStore extends Flux.Store {
 
   /**
    * Returns the total number of snippets following the specified criteria.
-   * @param {object} options
+   * @param {Object} options - Options for calculating the total number of snippets.
    * @param {boolean} options.includeCached - Whether to include cached snippets in the result.
    * @param {boolean} options.cachedOnly - Whether to only return the number of cached snippets.
    * @returns {number} The total number of snippets.

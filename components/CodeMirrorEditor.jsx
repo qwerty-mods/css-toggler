@@ -4,7 +4,7 @@ const { AsyncComponent, Clickable, FormTitle, Tooltip, AdvancedScrollerThin, Ico
 
 const CodeMirror = require('../../pc-moduleManager/components/manage/CodeMirror');
 
-class QuickCSS extends React.PureComponent {
+class CodeMirrorEditor extends React.PureComponent {
   constructor () {
     super();
 
@@ -149,5 +149,5 @@ class QuickCSS extends React.PureComponent {
 module.exports = AsyncComponent.from((async () => {
   return Flux.connectStores([ powercord.api.settings.store ], () => ({
     ...powercord.api.settings._fluxProps('pc-moduleManager')
-  }))(QuickCSS);
+  }))(CodeMirrorEditor);
 })());

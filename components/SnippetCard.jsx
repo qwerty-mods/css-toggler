@@ -15,7 +15,7 @@ const parser = getModule([ 'parse', 'parseTopic' ], false);
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
 
-const CodeEditor = require('./CodeEditor');
+const CodeMirrorEditor = require('./CodeMirrorEditor');
 
 const { MAX_SNIPPET_TITLE_LENGTH, MAX_SNIPPET_DESCRIPTION_LENGTH, DEFAULT_SNIPPET_TITLE } = require('../constants');
 
@@ -26,13 +26,14 @@ module.exports = React.memo(props => {
     return null;
   }
 
-  const defaultTitle = `${DEFAULT_SNIPPET_TITLE} #${props.index}`;
+  const isNewCustomSnippet = snippet.content === '/* Please replace me with your desired snippet */';
+  const defaultTitle = isNewCustomSnippet ? 'New Custom Snippet' : `${DEFAULT_SNIPPET_TITLE} #${props.index}`;
 
   const [ title, setTitle ] = React.useState(snippet.details?.title || defaultTitle);
   const [ author, setAuthor ] = React.useState(userStore.getUser(snippet.author));
   const [ description, setDescription ] = React.useState(snippet.details?.description);
   const [ expanded, setExpanded ] = React.useState(props.expanded);
-  const [ editing, setEditing ] = React.useState(false);
+  const [ editing, setEditing ] = React.useState(isNewCustomSnippet);
 
   React.useEffect(async () => {
     if (!author) {
@@ -124,7 +125,7 @@ module.exports = React.memo(props => {
         </div>}
 
         {editing && <div className='card-body-content'>
-          <CodeEditor
+          <CodeMirrorEditor
             value={snippet.content}
             onChange={(value) => props.manager.updateSnippet(snippet.id, value)}
           />

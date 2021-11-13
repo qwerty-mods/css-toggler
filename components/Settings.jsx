@@ -58,7 +58,7 @@ module.exports = class Settings extends React.Component {
 
           this.props.main.snippetManager.addSnippet({
             id: customId.toString(),
-            content: '/* filler */',
+            content: '/* Please replace me with your desired snippet */',
             author: {
               tag: this.currentUser.tag,
               id: this.currentUser.id
@@ -66,7 +66,8 @@ module.exports = class Settings extends React.Component {
           });
 
           this.props.main.snippetManager.updateSnippetDetails(customId.toString(), {
-            title: "New Custom Snippet"
+            title: '',
+            description: ''
           });
         }}
       >
