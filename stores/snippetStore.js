@@ -54,7 +54,7 @@ function handleRemoveSnippet (id, options) {
     delete snippets[id];
   }
 
-  if (!cachedSnippets.find(cachedSnippet => cachedSnippet.id === id)) {
+  if (cachedSnippets.find(cachedSnippet => cachedSnippet.id === id)) {
     handleEnableSnippet(id);
   }
 }

@@ -132,11 +132,11 @@ class QuickCSS extends React.PureComponent {
     );
   }
 
-  setupCodeMirror (cm) {
-    cm.on('change', () => this._handleCodeMirrorUpdate(cm.getValue()));
-    cm.setValue(this.props.value);
+  setupCodeMirror (codeMirror) {
+    codeMirror.on('change', () => this._handleCodeMirrorUpdate(codeMirror.getValue()));
+    codeMirror.setValue(this.props.value);
 
-    this.setState({ cm });
+    this.setState({ codeMirror });
   }
 
   _handleCodeMirrorUpdate (newValue) {

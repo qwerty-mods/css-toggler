@@ -13,7 +13,7 @@ let toasts = [];
 
 function sendToast (id, enabled, callback) {
   const statusText = enabled === true ? 'Enabled' : enabled === false ? 'Disabled' : 'Removed';
-  const snippetDetails = this.snippetDetails[id]
+  const snippet = this.snippetStore.getSnippet(id, { includeDetails: true });
 
   const toastId = `css-toggler-${id}-${Math.random().toString(36)}`;
   toasts.push(toastId);
@@ -21,7 +21,7 @@ function sendToast (id, enabled, callback) {
   powercord.api.notices.sendToast(toastId, {
     header: `${statusText} Snippet`,
     timeout: 5e3,
-    content: `You've ${statusText.toLowerCase()} snippet '${snippetDetails?.title ? snippetDetails.title : id}'`,
+    content: `You've ${statusText.toLowerCase()} snippet '${snippet.details?.title ? snippet.details.title : id}'`,
     buttons: [
       toasts.length > 1 && {
         text: Messages.CSS_TOGGLER_DISMISS_ALL,
@@ -34,11 +34,11 @@ function sendToast (id, enabled, callback) {
         look: 'ghost',
         size: 'small'
       },
-      {
+      id < 4194304 && enabled === null ? null : {
         text: enabled === true ? Messages.DISABLE : enabled === false ? Messages.ENABLE : Messages.JUMP_TO_MESSAGE,
         look: 'ghost',
         size: 'small',
-        onClick: () => callback(id)
+        onClick: () => callback(id, snippet.channel)
       }
     ].filter(Boolean)
   });
@@ -63,13 +63,12 @@ module.exports = class SnippetManager {
 
   fetchSnippets () {
     const snippets = {};
-    const snippetMatches = this.main.moduleManager._quickCSS.matchAll(/(\/[*]{2}[^]+?Snippet ID: \d+\n \*\/)\n([^]+?)\n(\/[*]{2} \d+ \*\/)/g);
+    const snippetMatches = this.main.moduleManager._quickCSS.matchAll(/(\/[*]{2}[^]+?Snippet ID: (\d+)\n \*\/)\n([^]+?)\n(\/[*]{2} \d+ \*\/)/g);
 
     for (const snippet of snippetMatches) {
-      const [ _, header, content, footer ] = snippet;
+      const [ _, header, id, content, footer ] = snippet;
 
       if (!content.includes('Snippet ID:')) {
-        const id = header.match(/Snippet ID: (\d+)/)[1];
         const appliedString = header.match(/(\w+ \d+, \d{4}(.+ )?\d+:\d+:\d+ \w+)|(\d+ \w+ \d+(.+ )?\d+:\d+:\d+)/)[0];
         const appliedTimestamp = moment(appliedString, 'DD MMM YYYY HH:mm:ss').valueOf() || moment(appliedString, 'MMM DD YYYY at HH:mm:ss A').valueOf();
         const channel = header.match(/#.+ \((\d{16,20})\) /)?.[1];
@@ -275,18 +274,19 @@ module.exports = class SnippetManager {
         throw new Error(`Unable to fetch snippet author for '${id}'!`);
       }
 
+      const isCustomSnippet = id < 4194304;
       const defaultArgs = {
         id,
         author,
-        content: `\`\`\`css\n${snippet.content}\n\`\`\``
+        content: isCustomSnippet ? snippet.content : `\`\`\`css\n${snippet.content}\n\`\`\``
       };
 
       if (snippet.channel) {
         defaultArgs.channel_id = snippet.channel;
       }
 
-      if (snippet.channel || snippet.id < 4194304) {
-        this.applySnippet(defaultArgs, snippet.id < 4194304);
+      if (snippet.channel || isCustomSnippet) {
+        this.applySnippet(defaultArgs, isCustomSnippet);
       } else {
         this.main.moduleManager._applySnippet(defaultArgs);
       }
