@@ -50,7 +50,7 @@ module.exports = class Settings extends React.Component {
         color={Button.Colors.GREEN}
         look={Button.Looks.FILLED}
         size={Button.Sizes.SMALL}
-        onClick={() => {
+        onClick={async () => {
           let customId = 1;
           while (this.props.main.snippetStore.getSnippet(customId.toString()) != undefined) {
             customId++;
@@ -69,6 +69,9 @@ module.exports = class Settings extends React.Component {
             title: '',
             description: ''
           });
+
+          const snippetCard = await waitFor(`.css-toggler-snippet-card[data-key='${customId.toString()}']`);
+          snippetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }}
       >
         {Messages.CSS_TOGGLER_SNIPPET_ADD_NEW}

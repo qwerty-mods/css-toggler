@@ -65,7 +65,7 @@ module.exports = React.memo(props => {
   }, [ expanded ]);
 
   return (
-    <div className='css-toggler-snippet-card' data-editing={editing} data-expanded={expanded} data-hasdescription={Boolean(description)}>
+    <div className='css-toggler-snippet-card' data-key={snippet.id} data-editing={editing} data-expanded={expanded} data-hasdescription={Boolean(description)}>
       <div className='card-header'>
         <div className='card-header-title'>
           <TextInput
