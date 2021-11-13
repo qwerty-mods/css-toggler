@@ -1,12 +1,10 @@
 const { React, Flux, getModuleByDisplayName, getModule, i18n: { Messages } } = require('powercord/webpack');
 const { Button, Flex, FormTitle, Icon, settings: { RadioGroup, SwitchItem } } = require('powercord/components');
 const { waitFor } = require('powercord/util');
-const { open: openModal } = require('powercord/modal');
 
 const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
 const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
 
-const NewSnippetModal = require('./NewSnippetModal');
 const SnippetCard = require('./SnippetCard');
 let ConnectedSnippetCard;
 
@@ -23,6 +21,7 @@ module.exports = class Settings extends React.Component {
   constructor (props) {
     super(props);
 
+    this.currentUser = getModule([ 'getUser', 'getCurrentUser' ], false).getCurrentUser();
     this.settings = props.main.settings;
     this.snippetManager = props.main.snippetManager;
     this.snippetStore = props.main.snippetStore;
@@ -51,7 +50,25 @@ module.exports = class Settings extends React.Component {
         color={Button.Colors.GREEN}
         look={Button.Looks.FILLED}
         size={Button.Sizes.SMALL}
-        onClick={() => openModal((props) => <NewSnippetModal {...props} main={this.props.main} />)}
+        onClick={() => {
+          let customId = 1;
+          while (this.props.main.snippetStore.getSnippet(customId.toString()) != undefined) {
+            customId++;
+          }
+
+          this.props.main.snippetManager.addSnippet({
+            id: customId.toString(),
+            content: '/* filler */',
+            author: {
+              tag: this.currentUser.tag,
+              id: this.currentUser.id
+            }
+          });
+
+          this.props.main.snippetManager.updateSnippetDetails(customId.toString(), {
+            title: "New Custom Snippet"
+          });
+        }}
       >
         {Messages.CSS_TOGGLER_SNIPPET_ADD_NEW}
       </Button>
