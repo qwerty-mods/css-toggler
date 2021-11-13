@@ -164,18 +164,6 @@
   border-top: none;
 }
 
-/* .css-toggler-snippet-card .card-body-content .card-body-content-input-box {
-  font-size: 14px;
-}
-
-.css-toggler-snippet-card .card-body-content > div {
-  margin-bottom: 0;
-}
-
-.css-toggler-snippet-card .card-body-content .divider-3573oO {
-  display: none;
-} */
-
 .css-toggler-snippet-card .card-body-content pre .hljs {
   background-color: var(--background-secondary-alt);
   border-radius: 3px;
@@ -210,6 +198,11 @@
   text-overflow: ellipsis;
   overflow: hidden;
   font-size: 16px;
+}
+
+.css-toggler-snippet-card .card-footer-author-name:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .css-toggler-snippet-card .card-footer-actions {

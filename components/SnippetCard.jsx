@@ -56,7 +56,7 @@ module.exports = React.memo(props => {
     props.manager.updateSnippetDetails(snippet.id, { title: isEmptyOrDefault ? '' : titleTrimmed });
   }, [ title ]);
 
-  const handleOnAvatarClick = () => openUserProfileModal({ userId: snippet.author });
+  const handleOnAuthorClick = () => openUserProfileModal({ userId: snippet.author });
   const handleOnExpand = React.useCallback(() => {
     setExpanded(!expanded);
     setEditing(false);
@@ -136,10 +136,10 @@ module.exports = React.memo(props => {
         <div className='card-footer-author'>
           <div className='card-footer-author-avatar'>
             <Tooltip text={Messages.VIEW_PROFILE} delay={500}>
-              <Avatar size={Avatar.Sizes.SIZE_32} src={author?.getAvatarURL() || getDefaultAvatarURL(snippet.author)} onClick={handleOnAvatarClick} />
+              <Avatar size={Avatar.Sizes.SIZE_32} src={author?.getAvatarURL() || getDefaultAvatarURL(snippet.author)} onClick={handleOnAuthorClick} />
             </Tooltip>
           </div>
-          <div className='card-footer-author-name'>
+          <div className='card-footer-author-name' onClick={handleOnAuthorClick}>
             {author?.tag || Messages.UNKNOWN_USER}
           </div>
         </div>
