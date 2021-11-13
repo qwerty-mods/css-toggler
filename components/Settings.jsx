@@ -80,7 +80,7 @@ module.exports = class Settings extends React.Component {
         look={TabBar.Looks.BRAND}
         type={TabBar.Types.TOP}>
         <TabBar.Item className={tabBarItem} id='snippets'>
-          {Messages.CSS_TOGGLER_SNIPPETS_TITLE}
+          {`${Messages.CSS_TOGGLER_SNIPPETS_TITLE} (${this.snippetStore.getSnippetCount()})`}
         </TabBar.Item>
         <TabBar.Item className={tabBarItem} id='settings'>
           {Messages.SETTINGS}
