@@ -8,13 +8,13 @@ Including:
 - Sort the snippets by time of applying, alphabetically, or person
 - Add own snippets.
 - Add button to other messages as well (any message with a css block in it)
+- Add edit functionality directly to snippet
 
 ### To-Do
 - If message is updated, update snippet as well
-- Add edit functionality directly to snippet
 
 # Format
-There is a certain format that we do require for snippets to have in Quick CSS. It is the same format that is found when clicking the `add snippet` button in #css-snippets. An example of this format is as follows. There is an example as well.
+There is a certain format that we do require for snippets to have in Quick CSS. It is the same format that is found when clicking the `Apply snippet` button in #css-snippets. An example of this format is as follows. There is an example as well.
 ```
 /**
  * Snippet from *channel (#css-snippets)* applied the *timestamp (Oct 27, 2021 at 10:10:44 PM)*
