@@ -99,7 +99,8 @@ module.exports = class Settings extends React.Component {
         selectedItem={this.state.selectedItem}
         onItemSelect={handleOnItemSelect}
         look={TabBar.Looks.BRAND}
-        type={TabBar.Types.TOP}>
+        type={TabBar.Types.TOP}
+      >
         <TabBar.Item className={tabBarItem} id='snippets'>
           {`${Messages.CSS_TOGGLER_SNIPPETS_TITLE} (${this.snippetStore.getSnippetCount()})`}
         </TabBar.Item>

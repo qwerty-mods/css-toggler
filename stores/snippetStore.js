@@ -1,5 +1,5 @@
 const { Flux, FluxDispatcher } = require('powercord/webpack');
-const { FluxActions, CACHE_FOLDER } = require('../constants');
+const { FluxActions, CACHE_FOLDER, MAX_CUSTOM_SNIPPET_ID_RANGE } = require('../constants');
 const { join } = require('path');
 
 const snippetsCache = join(CACHE_FOLDER, 'snippets.json');
@@ -75,6 +75,16 @@ const snippetDetails = settings.getSetting('snippetDetails', {});
  * @property {string} details.description - The description of the snippet.
  */
 
+/**
+ * Cached snippet type definition
+ * @typedef {Object} CachedSnippet
+ * @property {string} id - The ID of the snippet.
+ * @property {string?} channel - The ID of the channel the snippet was submitted in.
+ * @property {string} author - The author of the snippet.
+ * @property {string} content - The content of the snippet.
+ * @property {number} timestamp - The timestamp of the snippet.
+ */
+
 class SnippetStore extends Flux.Store {
   /**
    * Returns an existing snippet (i.e. cached or enabled) by its ID.
@@ -82,29 +92,27 @@ class SnippetStore extends Flux.Store {
    * @param {Object} options - Options for fetching a snippet.
    * @param {boolean} options.includeDetails - Whether to include the snippet's details.
    * @param {boolean} options.cachedOnly - Whether to only return a cached snippet.
+   * @returns {Snippet|CachedSnippet|undefined} The snippet, if it exists.
    */
-  getSnippet (id, options) {
-    if (!options?.cachedOnly && snippets[id]) {
-      const snippet = { id, ...snippets[id] };
+  getSnippet (id, options = {}) {
+    const cachedOnly = Boolean(options?.cachedOnly);
+    const cachedSnippet = cachedSnippets.find(cachedSnippet => cachedSnippet.id === id);
 
-      if (options?.includeDetails === true) {
+    let snippet = cachedOnly ? cachedSnippet : snippets[id] || cachedSnippet;
+    if (snippet) {
+      snippet = cachedOnly ? snippet : cachedSnippet || { id, ...snippets[id] };
+      snippet.custom = this.isCustom(id);
+
+      if (Boolean(options?.includeDetails)) {
         snippet.details = snippetDetails[id];
       }
 
       return snippet;
     }
-
-    const snippet = cachedSnippets.find(snippet => snippet.id === id);
-
-    if (snippet && options?.includeDetails === true) {
-      snippet.details = snippetDetails[id];
-    }
-
-    return snippet;
   }
 
   /**
-   * Returns all snippets following the specified criteria.
+   * Returns all snippets that (optionally) meets a specific criteria.
    * @param {Object} options - Options for fetching snippets.
    * @param {boolean} options.includeDetails - Whether to include the snippet's details.
    * @param {boolean} options.includeCached - Whether to include cached snippets.
@@ -112,10 +120,11 @@ class SnippetStore extends Flux.Store {
    */
   getSnippets (options) {
     let indexCounter = 0;
+    const getIndexedTitle = () => ({ title: `Untitled Snippet #${++indexCounter}` });
 
     const _$cachedSnippets = cachedSnippets.reduce((cachedSnippets, snippet) => {
-      if (options?.includeDetails === true) {
-        snippet.details = snippetDetails[snippet.id] || (indexCounter += 1, { title: `Untitled Snippet #${indexCounter}` });
+      if (Boolean(options?.includeDetails)) {
+        snippet.details = snippetDetails[snippet.id] || getIndexedTitle();
       }
 
       return {
@@ -124,17 +133,17 @@ class SnippetStore extends Flux.Store {
       };
     }, {});
 
-    if (options?.cachedOnly === true) {
+    if (Boolean(options?.cachedOnly)) {
       return _$cachedSnippets;
     }
 
     const _$snippets = { ...snippets };
 
-    if (options?.includeDetails === true) {
-      Object.keys(_$snippets).forEach(id => _$snippets[id].details = snippetDetails[id] || (indexCounter += 1, { title: `Untitled Snippet #${indexCounter}` }));
+    if (Boolean(options?.includeDetails)) {
+      Object.keys(_$snippets).forEach(id => _$snippets[id].details = snippetDetails[id] || getIndexedTitle());
     }
 
-    if (options?.includeCached === true) {
+    if (Boolean(options?.includeCached)) {
       Object.assign(_$snippets, { ..._$cachedSnippets });
     }
 
@@ -143,24 +152,34 @@ class SnippetStore extends Flux.Store {
 
   /**
    * Returns all snippets stored within the cache.
+   * @returns {CachedSnippet[]} An array of cached snippets.
    */
   getCachedSnippets () {
     return cachedSnippets;
   }
 
   /**
-   * Returns the total number of snippets following the specified criteria.
+   * Returns the total number of snippets that (optionally) meets a specific criteria.
    * @param {Object} options - Options for calculating the total number of snippets.
    * @param {boolean} options.includeCached - Whether to include cached snippets in the result.
    * @param {boolean} options.cachedOnly - Whether to only return the number of cached snippets.
    * @returns {number} The total number of snippets.
    */
   getSnippetCount (options = { includeCached: true, cachedOnly: false }) {
-    return (options?.cachedOnly ? 0 : Object.keys(snippets).length) + (options?.includeCached === true ? cachedSnippets.length : 0);
+    return (Boolean(options?.cachedOnly) ? 0 : Object.keys(snippets).length) + (Boolean(options?.includeCached) ? cachedSnippets.length : 0);
   }
 
   /**
-   * Checks if a snippet is enabled (not cached).
+   * Returns if a snippet is custom (created by the current user).
+   * @param {string} id - The ID of the snippet to check for.
+   * @returns {boolean} Whether the snippet is custom.
+   */
+  isCustom (id) {
+    return parseInt(id) < MAX_CUSTOM_SNIPPET_ID_RANGE;
+  }
+
+  /**
+   * Returns if a snippet is enabled (not cached).
    * @param {string} id - The ID of the snippet to check for.
    * @returns {boolean} Whether the snippet is enabled.
    */

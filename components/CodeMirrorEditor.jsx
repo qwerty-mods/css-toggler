@@ -133,7 +133,7 @@ class CodeMirrorEditor extends React.PureComponent {
   }
 
   setupCodeMirror (codeMirror) {
-    codeMirror.on('change', () => this._handleCodeMirrorUpdate(codeMirror.getValue()));
+    codeMirror.on('blur', () => this._handleCodeMirrorUpdate(codeMirror.getValue()));
     codeMirror.setValue(this.props.value);
 
     this.setState({ codeMirror });
@@ -141,7 +141,7 @@ class CodeMirrorEditor extends React.PureComponent {
 
   _handleCodeMirrorUpdate (newValue) {
     if (newValue.length > 0) {
-      this.props.onChange(newValue);
+      this.props.onBlur(newValue);
     }
   }
 }

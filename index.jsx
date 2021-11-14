@@ -65,7 +65,8 @@ module.exports = class CSSToggler extends Plugin {
 
     powercord.api.settings.unregisterSettings('css-toggler');
     powercord.api.commands.unregisterCommand('snippet');
-    FluxDispatcher.unsubscribe("MESSAGE_UPDATE", this.snippetUpdater);
+
+    FluxDispatcher.unsubscribe('MESSAGE_UPDATE', this.snippetUpdater);
   }
 
   async addSettingsJump () {
@@ -225,18 +226,20 @@ module.exports = class CSSToggler extends Plugin {
     });
   }
 
-  watchSnippets() {
-    FluxDispatcher.subscribe("MESSAGE_UPDATE", this.snippetUpdater = ({ message }) => {
+  watchSnippets () {
+    FluxDispatcher.subscribe('MESSAGE_UPDATE', this.snippetUpdater = ({ message }) => {
       if (!this.snippetStore.getSnippet(message.id)) return;
-      
+
       let content = '';
+
       for (const match of message.content.matchAll(/`{3}css\n([\s\S]*)`{3}/ig)) {
-        let snippet = match[1].trim();
+        const snippet = match[1].trim();
 
         content += `${snippet}\n`;
       }
+
       this.snippetManager.updateSnippet(message.id, content);
-    })
+    });
   }
 
   inject (id, ...args) {

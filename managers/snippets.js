@@ -34,7 +34,7 @@ function sendToast (id, enabled, callback) {
         look: 'ghost',
         size: 'small'
       },
-      id < 4194304 && enabled === null ? null : {
+      snippet.custom && enabled === null ? null : {
         text: enabled === true ? Messages.DISABLE : enabled === false ? Messages.ENABLE : Messages.JUMP_TO_MESSAGE,
         look: 'ghost',
         size: 'small',
@@ -218,7 +218,7 @@ module.exports = class SnippetManager {
       if (message.channel_id === CSS_SNIPPETS) {
         this.main.moduleManager._applySnippet(message);
       } else {
-        this.applySnippet(message, message.id < 4194304);
+        this.applySnippet(message, snippet.custom);
       }
     } else {
       throw new Error(`Snippet '${snippet.id}' already exists!`);
@@ -274,19 +274,18 @@ module.exports = class SnippetManager {
         throw new Error(`Unable to fetch snippet author for '${id}'!`);
       }
 
-      const isCustomSnippet = id < 4194304;
       const defaultArgs = {
         id,
         author,
-        content: isCustomSnippet ? snippet.content : `\`\`\`css\n${snippet.content}\n\`\`\``
+        content: snippet.custom ? snippet.content : `\`\`\`css\n${snippet.content}\n\`\`\``
       };
 
       if (snippet.channel) {
         defaultArgs.channel_id = snippet.channel;
       }
 
-      if (snippet.channel || isCustomSnippet) {
-        this.applySnippet(defaultArgs, isCustomSnippet);
+      if (snippet.channel || snippet.custom) {
+        this.applySnippet(defaultArgs, snippet.custom);
       } else {
         this.main.moduleManager._applySnippet(defaultArgs);
       }

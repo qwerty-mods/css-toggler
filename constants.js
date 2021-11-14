@@ -14,5 +14,6 @@ module.exports = Object.freeze({
   CACHE_FOLDER: join(__dirname, '.cache'),
   MAX_SNIPPET_TITLE_LENGTH: 32,
   MAX_SNIPPET_DESCRIPTION_LENGTH: 120,
+  MAX_CUSTOM_SNIPPET_ID_RANGE: 4194304,
   DEFAULT_SNIPPET_TITLE: 'Untitled Snippet'
 });

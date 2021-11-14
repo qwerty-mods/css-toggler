@@ -4,7 +4,7 @@ const { Clickable } = require('powercord/components');
 const SnippetButton = React.memo(props => {
   const [ applied, setApplied ] = React.useState(props.applied);
 
-  const handleOnClick = React.useCallback(async () => {
+  const handleOnClick = React.useCallback(() => {
     const method = props.applied ? 'removeSnippet' : 'addSnippet';
     const argument = props.applied ? props.message.id : props.message;
 

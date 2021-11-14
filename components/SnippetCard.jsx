@@ -84,7 +84,7 @@ module.exports = React.memo(props => {
         </div>
 
         <div className='card-header-snippet-id'>
-          {parseInt(snippet.id) >= 4194304 && <>
+          {!snippet.custom && <>
             ID:&nbsp;
             <Tooltip text={Messages.CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP}>
               <Clickable className='jump-to-snippet' onClick={() => props.manager.jumpToSnippet(snippet.id, snippet.channel)}>
@@ -92,7 +92,7 @@ module.exports = React.memo(props => {
               </Clickable>
             </Tooltip>
           </>}
-          {parseInt(snippet.id) < 4194304 && 'Custom Snippet'}&nbsp;
+          {snippet.custom && 'Custom Snippet'}&nbsp;
           {!props.enabled && '(cached)'}
         </div>
 
@@ -127,7 +127,7 @@ module.exports = React.memo(props => {
         {props.enabled && editing && <div className='card-body-content'>
           <CodeMirrorEditor
             value={snippet.content}
-            onChange={(value) => props.manager.updateSnippet(snippet.id, value)}
+            onBlur={(value) => props.manager.updateSnippet(snippet.id, value)}
           />
         </div>}
       </div>
@@ -169,9 +169,9 @@ module.exports = React.memo(props => {
           <Button
             size={Button.Sizes.SMALL}
             color={Button.Colors.BRAND}
-            onClick={async () => {
+            onClick={() => {
               try {
-                await props.manager.toggleSnippet(snippet.id, { showToast: true });
+                props.manager.toggleSnippet(snippet.id, { showToast: true });
               } catch (e) {
                 props.main.error(e);
               }
