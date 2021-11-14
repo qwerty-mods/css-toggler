@@ -1,6 +1,6 @@
 const { FluxDispatcher, getModule, constants: { ActionTypes, Routes }, i18n: { Messages } } = require('powercord/webpack');
 const { GUILD_ID, SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
-const { FluxActions } = require('../constants');
+const { MAX_CUSTOM_SNIPPET_ID_RANGE, FluxActions } = require('../constants');
 
 const moment = getModule([ 'momentProperties' ], false);
 const userStore = getModule([ 'getNullableCurrentUser' ], false);
@@ -218,7 +218,7 @@ module.exports = class SnippetManager {
       if (message.channel_id === CSS_SNIPPETS) {
         this.main.moduleManager._applySnippet(message);
       } else {
-        this.applySnippet(message, snippet.custom);
+        this.applySnippet(message, parseInt(message.id) < MAX_CUSTOM_SNIPPET_ID_RANGE);
       }
     } else {
       throw new Error(`Snippet '${snippet.id}' already exists!`);
