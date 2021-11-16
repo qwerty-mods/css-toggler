@@ -7,6 +7,38 @@
   cursor: pointer !important;
 }
 
+.css-toggler-settings-updater {
+  background: linear-gradient(90deg, var(--brand-experiment-900), var(--brand-experiment-730)) no-repeat;
+  border-radius: 10px;
+  padding: 5px 30px;
+}
+
+.css-toggler-settings-updater .top-section {
+  margin-top: 15px;
+}
+
+.css-toggler-settings-updater .top-section .icon {
+  width: 48px;
+}
+
+.css-toggler-settings-updater .top-section .status {
+  justify-content: space-between;
+}
+
+.css-toggler-settings-updater .top-section .about div span {
+  width: 100%;
+}
+
+.css-toggler-settings-updater .buttons, .css-toggler-settings-updater .update {
+  padding: initial;
+  margin-bottom: 15px;
+  border-bottom: none;
+}
+
+.css-toggler-settings-updater + .powercord-updater-ft {
+  margin-top: 20px;
+}
+
 /* Jump Icons */
 .css-toggler-quick-css-jump-icon {
   width: 24px;

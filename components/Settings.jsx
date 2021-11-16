@@ -1,15 +1,16 @@
 const { React, Flux, getModuleByDisplayName, getModule, i18n: { Messages } } = require('powercord/webpack');
 const { Button, Flex, FormTitle, Icon, settings: { RadioGroup, SwitchItem, TextInput } } = require('powercord/components');
+const { SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants');
 const { waitFor } = require('powercord/util');
-const { SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants'); 
 
 const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
 const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
 // const messageStore = getModule([ 'initialize', 'getRawMessages' ], false);
 // console.log(messageStore)
 
-const getMessage = require('../utils');
 const Icons = require('../../pc-updater/components/Icons');
+const getMessage = require('../utils');
+
 const SnippetCard = require('./SnippetCard');
 let ConnectedSnippetCard;
 
@@ -18,7 +19,7 @@ const Tooltip = getModuleByDisplayName('Tooltip', false);
 const TabBar = getModuleByDisplayName('TabBar', false);
 
 const { tabBar, tabBarItem } = getModule([ 'tabBar', 'tabBarItem' ], false);
-const { marginLeft8 } = getModule(["marginLeft8"], false);
+const { marginLeft8 } = getModule([ 'marginLeft8' ], false);
 
 const breadcrumbClasses = getModule([ 'breadcrumbInactive', 'breadcrumbActive' ], false);
 
@@ -202,7 +203,7 @@ module.exports = class Settings extends React.Component {
     const disabledEntities = this.props.getSetting('entities_disabled', []);
     const checkingProgress = this.props.getSetting('checking_progress', [ 0, 0 ]);
     const last = moment(this.props.getSetting('last_check', false)).calendar();
-    
+
     let icon,
       title;
     if (disabled) {
@@ -229,8 +230,8 @@ module.exports = class Settings extends React.Component {
     }
 
     return <>
-      <div class="powercord-updater powercord-text">
-        <div class="top-section">
+      <div class='css-toggler-settings-updater powercord-updater powercord-text'>
+        <div class='top-section'>
           <div className='icon'>{icon}</div>
           <div className='status'>
             <h3>{title}</h3>
@@ -245,7 +246,7 @@ module.exports = class Settings extends React.Component {
                   : Messages.POWERCORD_UPDATES_LAST_CHECKED.format({ date: last })}
             </div>}
           </div>
-          <div className="about">
+          <div className='about'>
             <div>
               <span>{Messages.CSS_TOGGLER_SNIPPETS_TITLE}:</span>
               <span>{this.snippetStore.getSnippetCount()}</span>
@@ -268,13 +269,13 @@ module.exports = class Settings extends React.Component {
             {updates.length > 0 && <Button
               size={Button.Sizes.SMALL}
               color={failed ? Button.Colors.RED : Button.Colors.GREEN}
-              onClick={() => console.log("force/update")}
+              onClick={() => console.log('force/update')}
             >
               {failed ? Messages.POWERCORD_UPDATES_FORCE : Messages.POWERCORD_UPDATES_UPDATE}
             </Button>}
             <Button
               size={Button.Sizes.SMALL}
-              onClick={updateSnippets}
+              onClick={this.updateSnippets}
             >
               {Messages.POWERCORD_UPDATES_CHECK}
             </Button>
@@ -288,15 +289,15 @@ module.exports = class Settings extends React.Component {
             <Button
               size={Button.Sizes.SMALL}
               color={Button.Colors.RED}
-              onClick={() => this.props.updateSetting('disable', true)}
+              onClick={() => this.props.updateSetting('disabled', true)}
             >
               {Messages.POWERCORD_UPDATES_DISABLE}
             </Button>
           </>)}
         </div>
       </div>
-      <FormTitle className='powercord-updater-ft'>{Messages.OPTIONS}</FormTitle>
       {!disabled && <>
+        <FormTitle className='powercord-updater-ft'>{Messages.OPTIONS}</FormTitle>
         <SwitchItem
           value={getSetting('automatic', false)}
           onChange={() => toggleSetting('automatic')}
@@ -305,7 +306,7 @@ module.exports = class Settings extends React.Component {
           {Messages.POWERCORD_UPDATES_OPTS_AUTO}
         </SwitchItem>
         <TextInput
-          note={Messages.POWERCORD_UPDATES_OPTS_INTERVAL_DESC.replace("Powercord", "CSS Toggler")}
+          note={Messages.POWERCORD_UPDATES_OPTS_INTERVAL_DESC.replace('Powercord', 'CSS Toggler')}
           onChange={val => updateSetting('interval', (Number(val) && Number(val) >= 10) ? Math.ceil(Number(val)) : 10, 15)}
           defaultValue={getSetting('interval', 15)}
           required={true}
@@ -313,7 +314,7 @@ module.exports = class Settings extends React.Component {
           {Messages.POWERCORD_UPDATES_OPTS_INTERVAL}
         </TextInput>
         <TextInput
-          note={Messages.POWERCORD_UPDATES_OPTS_CONCURRENCY_DESC.replace("Powercord", "CSS Toggler")}
+          note={Messages.POWERCORD_UPDATES_OPTS_CONCURRENCY_DESC.replace('Powercord', 'CSS Toggler')}
           onChange={val => updateSetting('concurrency', (Number(val) && Number(val) >= 1) ? Math.ceil(Number(val)) : 1, 2)}
           defaultValue={getSetting('concurrency', 2)}
           required={true}
@@ -362,13 +363,14 @@ module.exports = class Settings extends React.Component {
     </>;
   }
 
-  updateSnippets = async () => {
-    const { updateSetting, getSetting, toggleSetting } = this.props;
+  async updateSnippets () {
+    const { updateSetting, getSetting } = this.props;
+
     if (getSetting('disabled', false) || getSetting('paused', false) || getSetting('checking', false) || getSetting('updating', false)) return;
-    
+
     updateSetting('checking', true);
     updateSetting('checking_progress', [ 0, 0 ]);
-    
+
     Object.keys(this.props.snippets).map(async (id, index) => {
       if (id < 4194304) return; // Skip Custom Snippets
 
