@@ -18,5 +18,9 @@
   "CSS_TOGGLER_SORT_SNIPPETS_ALPHABETICALLY_OPT": "Alphabetically",
   "CSS_TOGGLER_SORT_SNIPPETS_ALPHABETICALLY_OPT_DESC": "Sorted by snippet name in alphabetical order.",
   "CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_TITLE": "Prioritize my Snippets",
-  "CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_DESC": "Your snippets will always be placed at the top of the list."
+  "CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_DESC": "Your snippets will always be placed at the top of the list.",
+  "CSS_TOGGLER_UPDATER_TITLE": "Updater",
+  "CSS_TOGGLER_UPDATES_UPDATING": "Snippets are updating...",
+  "CSS_TOGGLER_UPDATES_UP_TO_DATE": "Snippets are up to date",
+  "CSS_TOGGLER_UPDATES_OPTS_AUTO": "CSS Toggler can update in background without annoying you too much. Note that updates will require user action if there is a conflict."
 }

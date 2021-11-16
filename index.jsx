@@ -1,5 +1,5 @@
 const { Plugin } = require('powercord/entities');
-const { React, Flux, FluxDispatcher, getModule, getModuleByDisplayName, i18n: { Messages } } = require('powercord/webpack');
+const { React, Flux, getModule, getModuleByDisplayName, i18n: { Messages } } = require('powercord/webpack');
 const { Clickable, Tooltip, Icon } = require('powercord/components');
 const { resolveCompiler } = require('powercord/compilers');
 const { findInReactTree } = require('powercord/util');
@@ -54,7 +54,6 @@ module.exports = class CSSToggler extends Plugin {
     this.patchSettingsPage();
     this.patchSnippetButton();
     this.registerMainCommand();
-    this.watchSnippets();
   }
 
   pluginWillUnload () {
@@ -65,8 +64,6 @@ module.exports = class CSSToggler extends Plugin {
 
     powercord.api.settings.unregisterSettings('css-toggler');
     powercord.api.commands.unregisterCommand('snippet');
-
-    FluxDispatcher.unsubscribe('MESSAGE_UPDATE', this.snippetUpdater);
   }
 
   async addSettingsJump () {
@@ -223,22 +220,6 @@ module.exports = class CSSToggler extends Plugin {
 
         return subcommand.autocomplete(args.slice(1), this);
       }
-    });
-  }
-
-  watchSnippets () {
-    FluxDispatcher.subscribe('MESSAGE_UPDATE', this.snippetUpdater = ({ message }) => {
-      if (!this.snippetStore.getSnippet(message.id)) return;
-
-      let content = '';
-
-      for (const match of message.content.matchAll(/`{3}css\n([\s\S]*)`{3}/ig)) {
-        const snippet = match[1].trim();
-
-        content += `${snippet}\n`;
-      }
-
-      this.snippetManager.updateSnippet(message.id, content);
     });
   }
 

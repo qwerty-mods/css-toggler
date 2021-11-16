@@ -1,10 +1,15 @@
 const { React, Flux, getModuleByDisplayName, getModule, i18n: { Messages } } = require('powercord/webpack');
-const { Button, Flex, FormTitle, Icon, settings: { RadioGroup, SwitchItem } } = require('powercord/components');
+const { Button, Flex, FormTitle, Icon, settings: { RadioGroup, SwitchItem, TextInput } } = require('powercord/components');
 const { waitFor } = require('powercord/util');
+const { SpecialChannels: { CSS_SNIPPETS } } = require('powercord/constants'); 
 
 const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
 const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
+// const messageStore = getModule([ 'initialize', 'getRawMessages' ], false);
+// console.log(messageStore)
 
+const getMessage = require('../utils');
+const Icons = require('../../pc-updater/components/Icons');
 const SnippetCard = require('./SnippetCard');
 let ConnectedSnippetCard;
 
@@ -85,7 +90,7 @@ module.exports = class Settings extends React.Component {
         {this.renderTabs()}
         {this.renderBreadcumb()}
         {this.state.selectedItem === 'snippets' && this.renderTopBar()}
-        {this.state.selectedItem === 'snippets' ? this.renderSnippets() : this.renderSettings()}
+        {this.state.selectedItem === 'snippets' ? this.renderSnippets() : this.state.selectedItem === 'settings' ? this.renderSettings() : this.renderUpdater()}
       </div>
     )
   }
@@ -107,6 +112,9 @@ module.exports = class Settings extends React.Component {
         <TabBar.Item className={tabBarItem} id='settings'>
           {Messages.SETTINGS}
         </TabBar.Item>
+        <TabBar.Item className={tabBarItem} id='updater'>
+          {Messages.CSS_TOGGLER_UPDATER_TITLE}
+        </TabBar.Item>
       </TabBar>
     );
   }
@@ -122,7 +130,7 @@ module.exports = class Settings extends React.Component {
 
     return <Flex align={Flex.Align.CENTER} className={breadcrumbClasses.breadcrumbs}>
       <FormTitle tag='h1' className='css-toggler-settings-title'>
-        {this.state.selectedItem === 'snippets' ? Messages.CSS_TOGGLER_SNIPPETS_TITLE : Messages.SETTINGS}
+        {this.state.selectedItem === 'settings' ? Messages.SETTINGS : Messages[`CSS_TOGGLER_${this.state.selectedItem.toUpperCase()}_TITLE`]}
         {this.state.selectedItem === 'snippets' && <Tooltip text={Messages.CSS_TOGGLER_GO_TO_QUICK_CSS_TOOLTIP} position='right'>
           {(props) => <Icon {...props} onClick={handleOnClick} className='css-toggler-quick-css-jump-icon' name='Pencil' />}
         </Tooltip>}
@@ -180,6 +188,142 @@ module.exports = class Settings extends React.Component {
     ));
   }
 
+  renderUpdater() {
+    const { updateSetting, getSetting, toggleSetting } = this.props;
+
+    const moment = getModule([ 'momentProperties' ], false);
+    const updating = this.props.getSetting('updating', false);
+    const checking = this.props.getSetting('checking', false);
+    const disabled = this.props.getSetting('disabled', false);
+    const paused = this.props.getSetting('paused', false);
+    const failed = this.props.getSetting('failed', false);
+
+    const updates = this.props.getSetting('updates', []);
+    const disabledEntities = this.props.getSetting('entities_disabled', []);
+    const checkingProgress = this.props.getSetting('checking_progress', [ 0, 0 ]);
+    const last = moment(this.props.getSetting('last_check', false)).calendar();
+    
+    let icon,
+      title;
+    if (disabled) {
+      icon = <Icons.Update color='#f04747'/>;
+      title = Messages.POWERCORD_UPDATES_DISABLED;
+    } else if (paused) {
+      icon = <Icons.Paused/>;
+      title = Messages.POWERCORD_UPDATES_PAUSED;
+    } else if (checking) {
+      icon = <Icons.Update color='#7289da' animated/>;
+      title = Messages.POWERCORD_UPDATES_CHECKING;
+    } else if (updating) {
+      icon = <Icons.Update color='#7289da' animated/>;
+      title = Messages.CSS_TOGGLER_UPDATES_UPDATING;
+    } else if (failed) {
+      icon = <Icons.Error/>;
+      title = Messages.POWERCORD_UPDATES_FAILED;
+    } else if (updates.length > 0) {
+      icon = <Icons.Update/>;
+      title = Messages.POWERCORD_UPDATES_AVAILABLE;
+    } else {
+      icon = <Icons.UpToDate/>;
+      title = Messages.CSS_TOGGLER_UPDATES_UP_TO_DATE;
+    }
+
+    return <>
+      <div class="powercord-updater powercord-text">
+        <div class="top-section">
+          <div className='icon'>{icon}</div>
+          <div className='status'>
+            <h3>{title}</h3>
+            {!disabled && !updating && (!checking || checkingProgress[1] > 0) && <div>
+              {paused
+                ? Messages.POWERCORD_UPDATES_PAUSED_RESUME
+                : checking
+                  ? Messages.POWERCORD_UPDATES_CHECKING_STATUS.format({
+                    checked: checkingProgress[0],
+                    total: checkingProgress[1]
+                  })
+                  : Messages.POWERCORD_UPDATES_LAST_CHECKED.format({ date: last })}
+            </div>}
+          </div>
+          <div className="about">
+            <div>
+              <span>{Messages.CSS_TOGGLER_SNIPPETS_TITLE}:</span>
+              <span>{this.snippetStore.getSnippetCount()}</span>
+            </div>
+          </div>
+        </div>
+        <div className='buttons'>
+        {disabled || paused
+          ? <Button
+            size={Button.Sizes.SMALL}
+            color={Button.Colors.GREEN}
+            onClick={() => {
+              this.props.updateSetting('paused', false);
+              this.props.updateSetting('disabled', false);
+            }}
+          >
+            {disabled ? Messages.POWERCORD_UPDATES_ENABLE : Messages.POWERCORD_UPDATES_RESUME}
+          </Button>
+          : (!checking && !updating && <>
+            {updates.length > 0 && <Button
+              size={Button.Sizes.SMALL}
+              color={failed ? Button.Colors.RED : Button.Colors.GREEN}
+              onClick={() => console.log("force/update")}
+            >
+              {failed ? Messages.POWERCORD_UPDATES_FORCE : Messages.POWERCORD_UPDATES_UPDATE}
+            </Button>}
+            <Button
+              size={Button.Sizes.SMALL}
+              onClick={updateSnippets}
+            >
+              {Messages.POWERCORD_UPDATES_CHECK}
+            </Button>
+            <Button
+              size={Button.Sizes.SMALL}
+              color={Button.Colors.YELLOW}
+              onClick={() => this.props.updateSetting('paused', true)}
+            >
+              {Messages.POWERCORD_UPDATES_PAUSE}
+            </Button>
+            <Button
+              size={Button.Sizes.SMALL}
+              color={Button.Colors.RED}
+              onClick={() => this.props.updateSetting('disable', true)}
+            >
+              {Messages.POWERCORD_UPDATES_DISABLE}
+            </Button>
+          </>)}
+        </div>
+      </div>
+      <FormTitle className='powercord-updater-ft'>{Messages.OPTIONS}</FormTitle>
+      {!disabled && <>
+        <SwitchItem
+          value={getSetting('automatic', false)}
+          onChange={() => toggleSetting('automatic')}
+          note={Messages.CSS_TOGGLER_UPDATES_OPTS_AUTO}
+        >
+          {Messages.POWERCORD_UPDATES_OPTS_AUTO}
+        </SwitchItem>
+        <TextInput
+          note={Messages.POWERCORD_UPDATES_OPTS_INTERVAL_DESC.replace("Powercord", "CSS Toggler")}
+          onChange={val => updateSetting('interval', (Number(val) && Number(val) >= 10) ? Math.ceil(Number(val)) : 10, 15)}
+          defaultValue={getSetting('interval', 15)}
+          required={true}
+        >
+          {Messages.POWERCORD_UPDATES_OPTS_INTERVAL}
+        </TextInput>
+        <TextInput
+          note={Messages.POWERCORD_UPDATES_OPTS_CONCURRENCY_DESC.replace("Powercord", "CSS Toggler")}
+          onChange={val => updateSetting('concurrency', (Number(val) && Number(val) >= 1) ? Math.ceil(Number(val)) : 1, 2)}
+          defaultValue={getSetting('concurrency', 2)}
+          required={true}
+        >
+          {Messages.POWERCORD_UPDATES_OPTS_CONCURRENCY}
+        </TextInput>
+      </>}
+    </>
+  }
+
   renderSettings () {
     const { updateSetting, getSetting, toggleSetting } = this.props;
 
@@ -216,5 +360,33 @@ module.exports = class Settings extends React.Component {
         {Messages.CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_TITLE}
       </SwitchItem>
     </>;
+  }
+
+  updateSnippets = async () => {
+    const { updateSetting, getSetting, toggleSetting } = this.props;
+    if (getSetting('disabled', false) || getSetting('paused', false) || getSetting('checking', false) || getSetting('updating', false)) return;
+    
+    updateSetting('checking', true);
+    updateSetting('checking_progress', [ 0, 0 ]);
+    
+    Object.keys(this.props.snippets).map(async (id, index) => {
+      if (id < 4194304) return; // Skip Custom Snippets
+
+      const snippet = this.props.snippets[id];
+      let channel = snippet?.channel || CSS_SNIPPETS;
+
+      const message = await getMessage(channel.toString(), id.toString());
+
+      let content = '';
+      for (const match of message.content.matchAll(/`{3}css\n([\s\S]*)`{3}/ig)) {
+        let block = match[1].trim();
+
+        content += `${block}\n`;
+      }
+      this.snippetManager.updateSnippet(message.id, content);
+    });
+
+    updateSetting('last_check', Date.now());
+    updateSetting('checking', false);
   }
 };
