@@ -275,7 +275,7 @@ module.exports = class Settings extends React.Component {
             </Button>}
             <Button
               size={Button.Sizes.SMALL}
-              onClick={this.updateSnippets}
+              onClick={this.updateSnippets.bind(this)}
             >
               {Messages.POWERCORD_UPDATES_CHECK}
             </Button>
@@ -385,6 +385,7 @@ module.exports = class Settings extends React.Component {
 
         content += `${block}\n`;
       }
+
       this.snippetManager.updateSnippet(message.id, content);
     });
 

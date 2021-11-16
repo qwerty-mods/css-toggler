@@ -13,7 +13,7 @@ Allows for more quick CSS functionality, including but not limited to:
 - [ ] If a message is updated, update the snippet as well.
 
 ## Format
-There are certain formats that we require for snippets to appear under the "CSS Toggler" tab. Lucky for you it is almost identical to the format that is used upon clicking the `Apply Snippet` button in #css-snippets. Below you'll found a showcase of the 3 (three) formats that are available.
+There are certain formats that we require for snippets to appear under the "CSS Toggler" tab. Lucky for you it is almost identical to the format that is used upon clicking the `Apply Snippet` button in #css-snippets. Below you'll find a showcase of the 3 (three) formats that are available.
 
 ### Snippets from Powercord's `#css-snippets` channel:
 `{applied_date_time}` - A formatted date and time of when the snippet was applied (e.g. `Jan 1, 1970 at 12:00:00 AM`).<br/>
