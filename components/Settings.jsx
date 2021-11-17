@@ -5,8 +5,8 @@ const { waitFor } = require('powercord/util');
 
 const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
 const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
-// const messageStore = getModule([ 'initialize', 'getRawMessages' ], false);
-// console.log(messageStore)
+
+const { MAX_CUSTOM_SNIPPET_ID_RANGE } = require('../constants');
 
 const Icons = require('../../pc-updater/components/Icons');
 const getMessage = require('../utils');
@@ -86,12 +86,14 @@ module.exports = class Settings extends React.Component {
   }
 
   render () {
+    const { selectedItem } = this.state;
+
     return (
       <div>
         {this.renderTabs()}
         {this.renderBreadcumb()}
-        {this.state.selectedItem === 'snippets' && this.renderTopBar()}
-        {this.state.selectedItem === 'snippets' ? this.renderSnippets() : this.state.selectedItem === 'settings' ? this.renderSettings() : this.renderUpdater()}
+        {selectedItem === 'snippets' && this.renderTopBar()}
+        {this[`render${selectedItem[0].toUpperCase()}${selectedItem.slice(1)}`]()}
       </div>
     )
   }
@@ -109,6 +111,9 @@ module.exports = class Settings extends React.Component {
       >
         <TabBar.Item className={tabBarItem} id='snippets'>
           {`${Messages.CSS_TOGGLER_SNIPPETS_TITLE} (${this.snippetStore.getSnippetCount()})`}
+        </TabBar.Item>
+        <TabBar.Item className={tabBarItem} id='imports'>
+          {`${Messages.CSS_TOGGLER_IMPORTS_TITLE} (0)`}
         </TabBar.Item>
         <TabBar.Item className={tabBarItem} id='settings'>
           {Messages.SETTINGS}
@@ -129,14 +134,20 @@ module.exports = class Settings extends React.Component {
       quickCSSTab.click();
     };
 
+    const { selectedItem } = this.state;
+
     return <Flex align={Flex.Align.CENTER} className={breadcrumbClasses.breadcrumbs}>
       <FormTitle tag='h1' className='css-toggler-settings-title'>
-        {this.state.selectedItem === 'settings' ? Messages.SETTINGS : Messages[`CSS_TOGGLER_${this.state.selectedItem.toUpperCase()}_TITLE`]}
-        {this.state.selectedItem === 'snippets' && <Tooltip text={Messages.CSS_TOGGLER_GO_TO_QUICK_CSS_TOOLTIP} position='right'>
+        {selectedItem === 'settings' ? Messages.SETTINGS : Messages[`CSS_TOGGLER_${selectedItem.toUpperCase()}_TITLE`]}
+        {(selectedItem === 'snippets' || selectedItem === 'imports') && <Tooltip text={Messages.CSS_TOGGLER_GO_TO_QUICK_CSS_TOOLTIP} position='right'>
           {(props) => <Icon {...props} onClick={handleOnClick} className='css-toggler-quick-css-jump-icon' name='Pencil' />}
         </Tooltip>}
       </FormTitle>
     </Flex>;
+  }
+
+  renderImports () {
+    return null;
   }
 
   renderSnippets () {
@@ -189,7 +200,7 @@ module.exports = class Settings extends React.Component {
     ));
   }
 
-  renderUpdater() {
+  renderUpdater () {
     const { updateSetting, getSetting, toggleSetting } = this.props;
 
     const moment = getModule([ 'momentProperties' ], false);
@@ -371,8 +382,8 @@ module.exports = class Settings extends React.Component {
     updateSetting('checking', true);
     updateSetting('checking_progress', [ 0, 0 ]);
 
-    Object.keys(this.props.snippets).map(async (id, index) => {
-      if (id < 4194304) return; // Skip Custom Snippets
+    Object.keys(this.props.snippets).map(async (id) => {
+      if (id < MAX_CUSTOM_SNIPPET_ID_RANGE) return; // Skip Custom Snippets
 
       const snippet = this.props.snippets[id];
       let channel = snippet?.channel || CSS_SNIPPETS;
@@ -386,7 +397,7 @@ module.exports = class Settings extends React.Component {
         content += `${block}\n`;
       }
 
-      this.snippetManager.updateSnippet(message.id, content);
+      // this.snippetManager.updateSnippet(message.id, content);
     });
 
     updateSetting('last_check', Date.now());

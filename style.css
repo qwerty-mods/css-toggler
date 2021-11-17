@@ -25,6 +25,10 @@
   justify-content: space-between;
 }
 
+.css-toggler-settings-updater .top-section .about {
+  font-family: var(--font-primary);
+}
+
 .css-toggler-settings-updater .top-section .about div span {
   width: 100%;
 }
