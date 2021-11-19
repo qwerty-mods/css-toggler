@@ -11,7 +11,10 @@ const { MAX_CUSTOM_SNIPPET_ID_RANGE } = require('../constants');
 const Icons = require('../../pc-updater/components/Icons');
 const getMessage = require('../utils');
 
+const ImportCard = require('./ImportCard');
 const SnippetCard = require('./SnippetCard');
+
+let ConnectedImportCard;
 let ConnectedSnippetCard;
 
 const SearchBar = getModule(m => m?.displayName === 'SearchBar' && m?.defaultProps.hasOwnProperty('isLoading'), false);
@@ -29,12 +32,22 @@ module.exports = class Settings extends React.Component {
 
     this.currentUser = getModule([ 'getUser', 'getCurrentUser' ], false).getCurrentUser();
     this.settings = props.main.settings;
+
+    this.importManager = props.main.importManager;
+    this.importStore = props.main.importStore;
+
     this.snippetManager = props.main.snippetManager;
     this.snippetStore = props.main.snippetStore;
+
     this.state = {
       query: '',
       selectedItem: 'snippets'
     };
+
+    ConnectedImportCard = Flux.connectStores([ this.importStore ], ({ url }) => ({
+      import: this.importStore.getImport(url, { includeDetails: true }),
+      enabled: this.importStore.isEnabled(url)
+    }))(ImportCard);
 
     ConnectedSnippetCard = Flux.connectStores([ this.snippetStore ], ({ id }) => ({
       snippet: this.snippetStore.getSnippet(id, { includeDetails: true }),
@@ -113,7 +126,7 @@ module.exports = class Settings extends React.Component {
           {`${Messages.CSS_TOGGLER_SNIPPETS_TITLE} (${this.snippetStore.getSnippetCount()})`}
         </TabBar.Item>
         <TabBar.Item className={tabBarItem} id='imports'>
-          {`${Messages.CSS_TOGGLER_IMPORTS_TITLE} (0)`}
+          {`${Messages.CSS_TOGGLER_IMPORTS_TITLE} (${this.importStore.getImportCount()})`}
         </TabBar.Item>
         <TabBar.Item className={tabBarItem} id='settings'>
           {Messages.SETTINGS}
@@ -147,7 +160,18 @@ module.exports = class Settings extends React.Component {
   }
 
   renderImports () {
-    return null;
+    const { imports } = this.props;
+
+    return Object.keys(imports).map((id, index) => (
+      <ConnectedImportCard
+        url={imports[id].url}
+        key={id}
+        index={index + 1}
+        expanded={!this.props.getSetting('collapsedImports', []).includes(id)}
+        manager={this.importManager}
+        main={this.props.main}
+      />
+    ));
   }
 
   renderSnippets () {

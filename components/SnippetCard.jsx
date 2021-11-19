@@ -17,7 +17,7 @@ const userProfileStore = getModule([ 'fetchProfile' ], false);
 
 const CodeMirrorEditor = require('./CodeMirrorEditor');
 
-const { MAX_SNIPPET_TITLE_LENGTH, MAX_SNIPPET_DESCRIPTION_LENGTH, DEFAULT_SNIPPET_TITLE } = require('../constants');
+const { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, DEFAULT_SNIPPET_TITLE } = require('../constants');
 
 module.exports = React.memo(props => {
   const snippet = props.snippet;
@@ -70,9 +70,9 @@ module.exports = React.memo(props => {
         <div className='card-header-title'>
           <TextInput
             size='mini'
-            maxLength={MAX_SNIPPET_TITLE_LENGTH}
+            maxLength={MAX_TITLE_LENGTH}
             value={title.startsWith(DEFAULT_SNIPPET_TITLE) ? '' : title}
-            placeholder={title.startsWith(DEFAULT_SNIPPET_TITLE) ? '' : Messages.CSS_TOGGLER_SNIPPET_TITLE_PLACEHOLDER}
+            placeholder={title.startsWith(DEFAULT_SNIPPET_TITLE) ? '' : Messages.CSS_TOGGLER_TITLE_PLACEHOLDER}
             className='card-header-title-input'
             inputClassName='card-header-title-input-box'
             onChange={(value) => setTitle(value.startsWith(DEFAULT_SNIPPET_TITLE) ? title : value)}
@@ -108,7 +108,7 @@ module.exports = React.memo(props => {
 
         {editing && <div className='card-body-description'>
           <TextAreaInput
-            maxLength={MAX_SNIPPET_DESCRIPTION_LENGTH}
+            maxLength={MAX_DESCRIPTION_LENGTH}
             value={description}
             placeholder={Messages.CSS_TOGGLER_SNIPPET_DESC_PLACEHOLDER}
             className='card-body-description-input-box'

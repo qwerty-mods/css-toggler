@@ -9,6 +9,7 @@ const injector = require('powercord/injector');
 const i18n = require('./i18n');
 const commands = require('./commands');
 const Settings = require('./components/Settings');
+const ImportManager = require('./managers/imports');
 const SnippetButton = require('./components/SnippetButton');
 const SnippetManager = require('./managers/snippets');
 
@@ -29,12 +30,19 @@ module.exports = class CSSToggler extends Plugin {
     this.watchQuickCSSFile();
     this.loadStylesheet('./style.css');
 
+    this.importStore = require('./stores/importStore');
+    this.importManager = new ImportManager(this);
+
     this.snippetStore = require('./stores/snippetStore');
     this.snippetManager = new SnippetManager(this);
 
     powercord.api.i18n.loadAllStrings(i18n);
 
     const ConnectedSettings = Flux.connectStores([ this.snippetStore ], () => ({
+      imports: this.importStore.getImports({
+        includeCached: true,
+        includeDetails: true
+      }),
       snippets: this.snippetStore.getSnippets({
         includeCached: true,
         includeDetails: true
@@ -164,6 +172,7 @@ module.exports = class CSSToggler extends Plugin {
 
       if (_quickCSS !== _quickCSSElement.innerHTML) {
         this.moduleManager._quickCSS = _quickCSSElement.innerHTML;
+        this.importManager.fetchImports();
         this.snippetManager.fetchSnippets();
       }
     };
