@@ -162,16 +162,18 @@ module.exports = class Settings extends React.Component {
   renderImports () {
     const { imports } = this.props;
 
-    return Object.keys(imports).map((id, index) => (
-      <ConnectedImportCard
-        url={imports[id].url}
+    return Object.keys(imports).map((id, index) => {
+      const $import = imports[id];
+
+      return <ConnectedImportCard
+        url={$import.url}
         key={id}
         index={index + 1}
-        expanded={!this.props.getSetting('collapsedImports', []).includes(id)}
+        expanded={!this.props.getSetting('collapsedImports', []).includes($import.url)}
         manager={this.importManager}
         main={this.props.main}
-      />
-    ));
+      />;
+    });
   }
 
   renderSnippets () {

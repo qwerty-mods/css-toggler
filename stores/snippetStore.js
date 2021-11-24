@@ -166,7 +166,7 @@ class SnippetStore extends Flux.Store {
    * @returns {number} The total number of snippets.
    */
   getSnippetCount (options = { includeCached: true, cachedOnly: false }) {
-    return (Boolean(options?.cachedOnly) ? 0 : Object.keys(snippets).length) + (Boolean(options?.includeCached) ? cachedSnippets.length : 0);
+    return (Boolean(options?.cachedOnly) ? 0 : Object.keys(snippets).length) + (Boolean(options?.cachedOnly || Boolean(options?.includeCached)) ? cachedSnippets.length : 0);
   }
 
   /**

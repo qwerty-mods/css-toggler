@@ -12,7 +12,7 @@ const Caret = getModuleByDisplayName('Caret', false);
 const TextInput = getModuleByDisplayName('TextInput', false);
 
 const parser = getModule([ 'parse', 'parseTopic' ], false);
-const userStore = getModule([ 'getNullableCurrentUser' ], false);
+const userStore = getModule([ 'initialize', 'getCurrentUser' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
 
 const CodeMirrorEditor = require('./CodeMirrorEditor');

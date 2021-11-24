@@ -9,6 +9,7 @@
   "CSS_TOGGLER_SNIPPET_APPLIED_MESSAGE": "You applied this snippet on {date, date, long} at {date, time, short}",
   "CSS_TOGGLER_IMPORT_DESC_PLACEHOLDER": "How would you describe this import?",
   "CSS_TOGGLER_TITLE_PLACEHOLDER": "Enter a title",
+  "CSS_TOGGLER_VIEW_REPOSITORY": "View Repository",
   "CSS_TOGGLER_VIEW_SOURCE": "View Source",
   "CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP": "Click to jump to snippet",
   "CSS_TOGGLER_GO_TO_CSS_TOGGLER_TOOLTIP": "Click to go to CSS Toggler",

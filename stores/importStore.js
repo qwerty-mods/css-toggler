@@ -111,14 +111,19 @@ class ImportStore extends Flux.Store {
     let indexCounter = 0;
     const getIndexedTitle = () => ({ title: `Untitled Import #${++indexCounter}` });
 
-    const _$cachedImports = cachedImports.reduce((cachedImports, $import) => {
+    const _$cachedImports = cachedImports.reduce((newCachedImports, $import) => {
+      const index = cachedImports.indexOf($import);
+
       if (Boolean(options?.includeDetails)) {
-        $import.details = importDetails[url] || getIndexedTitle();
+        $import = {
+          url: $import,
+          details: importDetails[$import] || getIndexedTitle()
+        };
       }
 
       return {
-        ...cachedImports,
-        [cachedImports.indexOf(url)]: $import
+        ...newCachedImports,
+        [imports.length > 0 ? imports.length : index]: $import
       };
     }, {});
 
@@ -158,7 +163,7 @@ class ImportStore extends Flux.Store {
    * @returns {number} The total number of imports.
    */
   getImportCount (options = { includeCached: true, cachedOnly: false }) {
-    return (Boolean(options?.cachedOnly) ? 0 : imports.length) + (Boolean(options?.includeCached) ? cachedImports.length : 0);
+    return (Boolean(options?.cachedOnly) ? 0 : imports.length) + (Boolean(options?.cachedOnly || Boolean(options?.includeCached)) ? cachedImports.length : 0);
   }
 
   /**

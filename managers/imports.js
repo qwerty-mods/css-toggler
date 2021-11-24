@@ -3,17 +3,17 @@ const { FluxActions } = require('../constants');
 
 let toasts = [];
 
-function sendToast (id, enabled, callback) {
+function sendToast (url, enabled, callback) {
   const statusText = enabled === true ? 'Enabled' : enabled === false ? 'Disabled' : 'Removed';
-  const $import = this.importStore.getImport(id, { includeDetails: true });
+  const $import = this.importStore.getImport(url, { includeDetails: true });
 
-  const toastId = `css-toggler-${id}-${Math.random().toString(36)}`;
+  const toastId = `css-toggler-${Math.random().toString(36)}`;
   toasts.push(toastId);
 
   powercord.api.notices.sendToast(toastId, {
     header: `${statusText} Import`,
     timeout: 5e3,
-    content: `You've ${statusText.toLowerCase()} import '${$import.details?.title ? $import.details.title : id}'`,
+    content: `You've ${statusText.toLowerCase()} import '${$import.details?.title ? $import.details.title : url}'`,
     buttons: [
       toasts.length > 1 && {
         text: Messages.CSS_TOGGLER_DISMISS_ALL,
@@ -26,11 +26,11 @@ function sendToast (id, enabled, callback) {
         look: 'ghost',
         size: 'small'
       },
-      $import.custom && enabled === null ? null : {
-        text: enabled === true ? Messages.DISABLE : enabled === false ? Messages.ENABLE : Messages.JUMP_TO_MESSAGE,
+      enabled !== null && {
+        text: enabled === true ? Messages.DISABLE : Messages.ENABLE,
         look: 'ghost',
         size: 'small',
-        onClick: () => callback(id)
+        onClick: () => callback(url)
       }
     ].filter(Boolean)
   });
@@ -54,8 +54,8 @@ module.exports = class ImportManager {
   }
 
   fetchImports () {
-    const importMatches = this.main.moduleManager._quickCSS.matchAll(/@import url\(["']([^"']+)["']\)/g);
-    const imports = [ ...importMatches ].map(([ , url ]) => url);
+    const importMatches = this.main.moduleManager._quickCSS.matchAll(/@import url\(["']?([^"']+)["']?\)/g);
+    const imports = [ ...(new Set([ ...importMatches ].map(([ , url ]) => url))) ];
 
     FluxDispatcher.dirtyDispatch({
       type: FluxActions.IMPORTS_FETCH,
@@ -65,58 +65,58 @@ module.exports = class ImportManager {
     return imports;
   }
 
-  toggleCollapse (id) {
+  toggleCollapse (url) {
     const collapsedImports = getSetting('collapsedImports', []);
 
-    if (collapsedImports.includes(id)) {
-      collapsedImports.splice(collapsedImports.indexOf(id), 1);
+    if (collapsedImports.includes(url)) {
+      collapsedImports.splice(collapsedImports.indexOf(url), 1);
     } else {
-      collapsedImports.push(id);
+      collapsedImports.push(url);
     }
 
     updateSetting('collapsedImports', collapsedImports);
   }
 
-  updateImportDetails (id, newDetails) {
+  updateImportDetails (url, newDetails) {
     if (typeof newDetails !== 'object') {
       return;
     }
 
-    this.importDetails[id] = {
-      title: newDetails.title ?? this.importDetails[id]?.title,
-      description: newDetails.description ?? this.importDetails[id]?.description
+    this.importDetails[url] = {
+      title: newDetails.title ?? this.importDetails[url]?.title,
+      description: newDetails.description ?? this.importDetails[url]?.description
     };
 
-    if (!this.importDetails[id].title) {
-      delete this.importDetails[id].title;
+    if (!this.importDetails[url].title) {
+      delete this.importDetails[url].title;
     }
 
-    if (!this.importDetails[id].description) {
-      delete this.importDetails[id].description;
+    if (!this.importDetails[url].description) {
+      delete this.importDetails[url].description;
     }
 
-    if (!this.importDetails[id].title && !this.importDetails[id].description) {
-      delete this.importDetails[id];
+    if (!this.importDetails[url].title && !this.importDetails[url].description) {
+      delete this.importDetails[url];
     }
 
     updateSetting('importDetails', this.importDetails);
   }
 
-  async updateImport (id, newUrl) {
-    const $import = this.importStore.getImport(id);
+  async updateImport (url, newUrl) {
+    const $import = this.importStore.getImport(url);
 
     if ($import) {
-      if ($import.url === newUrl) {
+      if ($import === newUrl) {
         return;
       }
 
       let quickCSS = this.main.moduleManager._quickCSS;
-      const match = quickCSS.match(new RegExp(`${global._.escapeRegExp(`@import url\(["']${$import.url}["'])`)}`));
+      const match = quickCSS.match(new RegExp(`@import url\\(["']?${global._.escapeRegExp($import)}["']?\\)`));
 
       if (match) {
-        const newImport = match[0].replace($import.url, newUrl);
+        const newImport = match[0].replace($import, newUrl);
 
-        quickCSS = quickCSS.replace(match[0], newImport);
+        quickCSS = quickCSS.replaceAll(match[0], newImport);
 
         await this.main.moduleManager._saveQuickCSS(quickCSS);
       }
@@ -125,22 +125,22 @@ module.exports = class ImportManager {
     }
   }
 
-  async removeImport (id, options) {
-    if (this.importStore.isEnabled(id)) {
+  async removeImport (url, options) {
+    if (this.importStore.isEnabled(url)) {
       let quickCSS = this.main.moduleManager._quickCSS;
-      const match = quickCSS.match(new RegExp(`${global._.escapeRegExp(`@import url\(["']${$import.url}["'])`)}`));
+      const importRegExp = new RegExp(`@import url\\(["']?${global._.escapeRegExp(url)}["']?\\).+(\n?)`, 'g');
 
-      if (match) {
-        quickCSS = quickCSS.replace(match[0], '');
+      if (importRegExp.test(quickCSS)) {
+        quickCSS = quickCSS.replaceAll(importRegExp, '');
 
         await this.main.moduleManager._saveQuickCSS(quickCSS);
       } else {
-        throw new Error(`Import '${id}' not found!`);
+        throw new Error(`Import '${url}' not found!`);
       }
     }
 
     if (options?.showToast === true) {
-      sendToast.call(this, id, null);
+      sendToast.call(this, url, null);
     }
 
     delete options?.showToast;
@@ -148,11 +148,11 @@ module.exports = class ImportManager {
     FluxDispatcher.dirtyDispatch({
       type: FluxActions.IMPORT_REMOVE,
       options,
-      id
+      url
     });
   }
 
-  addImport (url) {
+  async addImport (url, force = false) {
     if (typeof url !== 'string') {
       return;
     }
@@ -160,7 +160,7 @@ module.exports = class ImportManager {
     const quickCSS = this.main.moduleManager._quickCSS;
     const $import = this.importStore.getImport(url);
 
-    if (!$import) {
+    if (!$import || Boolean(force)) {
       this.main.moduleManager._saveQuickCSS(`@import url('${url}');\n${quickCSS}`);
     } else {
       throw new Error(`Import '${url}' already exists!`);
@@ -172,7 +172,7 @@ module.exports = class ImportManager {
     const enabled = this.importStore.isEnabled(url);
 
     if ($import && !enabled) {
-      this.addImport(url);
+      await this.addImport(url);
 
       FluxDispatcher.dirtyDispatch({
         type: FluxActions.IMPORT_ENABLE,

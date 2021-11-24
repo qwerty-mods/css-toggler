@@ -240,6 +240,7 @@
   height: 32px;
   background-color: var(--background-tertiary);
   color: var(--interactive-normal);
+  cursor: pointer;
   padding: 6px;
 }
 

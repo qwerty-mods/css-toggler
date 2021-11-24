@@ -1,6 +1,6 @@
 const { React, getModule, getModuleByDisplayName, i18n: { Messages } } = require('powercord/webpack');
 const { TextAreaInput } = require('powercord/components/settings');
-const { Clickable, Icon } = require('powercord/components');
+const { Clickable, Icon, Icons: { GitHub } } = require('powercord/components');
 
 const { default: Button } = getModule([ 'ButtonLink' ], false);
 
@@ -19,6 +19,7 @@ module.exports = React.memo(props => {
     return null;
   }
 
+  const isURLGitHubPages = $import.url.includes('github.io');
   const isNewCustomImport = $import.url === '/* Please replace me with your desired import */';
   const defaultTitle = isNewCustomImport ? 'New Custom Import' : `${DEFAULT_IMPORT_TITLE} #${props.index}`;
 
@@ -41,12 +42,27 @@ module.exports = React.memo(props => {
     props.manager.updateImportDetails($import.url, { title: isEmptyOrDefault ? '' : titleTrimmed });
   }, [ title ]);
 
-  const handleOnSourceClick = () => void 0;
+  const handleOnSourceClick = () => {
+    try {
+      if (isURLGitHubPages) {
+        const [ _, github, repo ] = $import.url.match(/(?:https?:\/\/)?(.+)\.github\.io\/(.+?)\/.+/);
+
+        if (github && repo) {
+          window.open(`https://github.com/${github}/${repo}`, '_blank');
+        }
+      } else {
+        window.open($import.url, '_blank');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleOnExpand = React.useCallback(() => {
     setExpanded(!expanded);
     setEditing(false);
 
-    props.manager.toggleCollapse(props.index);
+    props.manager.toggleCollapse($import.url);
   }, [ expanded ]);
 
   return (
@@ -104,7 +120,13 @@ module.exports = React.memo(props => {
           <TextInput
             value={url}
             onChange={setUrl}
-            onBlur={() => props.manager.updateImport($import.url, value)}
+            onBlur={() => {
+              try {
+                props.manager.updateImport($import.url, url)
+              } catch (e) {
+                console.error(e);
+              }
+            }}
           />
         </div>}
       </div>
@@ -112,12 +134,14 @@ module.exports = React.memo(props => {
       {expanded && <div className='card-footer'>
         <div className='card-footer-source'>
           <div className='card-footer-source-icon'>
-            <Tooltip text={Messages.CSS_TOGGLER_VIEW_SOURCE} delay={500}>
-              {(props) => <Icon {...props} name='Link' onClick={handleOnSourceClick} />}
+            <Tooltip text={isURLGitHubPages ? Messages.CSS_TOGGLER_VIEW_REPOSITORY : Messages.CSS_TOGGLER_VIEW_SOURCE} delay={500}>
+              {(props) => <Clickable onClick={handleOnSourceClick}>
+                {isURLGitHubPages ? <GitHub {...props} /> : <Icon {...props} name='Link' />}
+              </Clickable>}
             </Tooltip>
           </div>
           <div className='card-footer-source-name' onClick={handleOnSourceClick}>
-            {Messages.CSS_TOGGLER_VIEW_SOURCE}
+            {isURLGitHubPages ? Messages.CSS_TOGGLER_VIEW_REPOSITORY : Messages.CSS_TOGGLER_VIEW_SOURCE}
           </div>
         </div>
 
