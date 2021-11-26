@@ -3,7 +3,7 @@ const { GUILD_ID, SpecialChannels: { CSS_SNIPPETS } } = require('powercord/const
 const { FluxActions } = require('../constants');
 
 const moment = getModule([ 'momentProperties' ], false);
-const userStore = getModule([ 'getNullableCurrentUser' ], false);
+const userStore = getModule([ 'initialize', 'getCurrentUser' ], false);
 const channelStore = getModule([ 'getDMFromUserId', 'getChannel' ], false);
 const userProfileStore = getModule([ 'fetchProfile' ], false);
 
