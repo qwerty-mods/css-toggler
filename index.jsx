@@ -2,7 +2,7 @@ const { Plugin } = require('powercord/entities');
 const { React, Flux, getModule, getModuleByDisplayName, i18n: { Messages } } = require('powercord/webpack');
 const { Clickable, Tooltip, Icon } = require('powercord/components');
 const { resolveCompiler } = require('powercord/compilers');
-const { findInReactTree } = require('powercord/util');
+const { findInReactTree, getOwnerInstance } = require('powercord/util');
 
 const injector = require('powercord/injector');
 
@@ -13,6 +13,7 @@ const SnippetButton = require('./components/SnippetButton');
 const SnippetManager = require('./managers/snippets');
 
 const { CommandResultColors } = require('./constants');
+const QuickCssIcon = require('./components/QuickCssIcon');
 
 module.exports = class CSSToggler extends Plugin {
   constructor () {
@@ -54,6 +55,7 @@ module.exports = class CSSToggler extends Plugin {
     this.patchSettingsPage();
     this.patchSnippetButton();
     this.registerMainCommand();
+    this.patchChannelHeader();
   }
 
   pluginWillUnload () {
@@ -153,6 +155,32 @@ module.exports = class CSSToggler extends Plugin {
     });
 
     MiniPopover.default.displayName = 'MiniPopover';
+  }
+
+  async patchChannelHeader () {
+    const HeaderBarContainer = getModuleByDisplayName('HeaderBarContainer', false);
+
+    this.inject('css-toggler-header-bar', HeaderBarContainer.prototype, 'render', (_, res) => {
+      const toolbar = res.props.toolbar;
+
+      if (toolbar) {
+        const children = toolbar.props.children;
+        const index = children?.findIndex(i => i?.type?.displayName?.includes('UpdateButton'));
+
+        if (index > -1) {
+          children.splice(index, 0, <QuickCssIcon />);
+        }
+      }
+
+      return res;
+    });
+
+    const classes = getModule([ 'title', 'chatContent' ], false);
+    const toolbar = document.querySelector(`.${classes.title}`);
+
+    if (toolbar) {
+      getOwnerInstance(toolbar)?.forceUpdate?.();
+    }
   }
 
   watchQuickCSSFile () {

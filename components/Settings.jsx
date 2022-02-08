@@ -6,6 +6,8 @@ const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
 const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
 
 const SnippetCard = require('./SnippetCard');
+const QuickCssIcon = require('./QuickCssIcon');
+
 let ConnectedSnippetCard;
 
 const SearchBar = getModule(m => m?.displayName === 'SearchBar' && m?.defaultProps.hasOwnProperty('isLoading'), false);
@@ -108,10 +110,11 @@ module.exports = class Settings extends React.Component {
   }
 
   renderBreadcumb () {
+    const { selectedItem } = this.state;
     const settingsModule = getModule([ 'open', 'saveAccountChanges' ], false);
     const handleOnClick = async () => {
       settingsModule.open('pc-moduleManager-themes');
-
+  
       const quickCSSTab = await waitFor('.powercord-entities-manage-tabs [data-item-id="QUICK_CSS"]');
       quickCSSTab.click();
     };
@@ -119,9 +122,7 @@ module.exports = class Settings extends React.Component {
     return <Flex align={Flex.Align.CENTER} className={breadcrumbClasses.breadcrumbs}>
       <FormTitle tag='h1' className='css-toggler-settings-title'>
         {this.state.selectedItem === 'snippets' ? Messages.CSS_TOGGLER_SNIPPETS_TITLE : Messages.SETTINGS}
-        {this.state.selectedItem === 'snippets' && <Tooltip text={Messages.CSS_TOGGLER_GO_TO_QUICK_CSS_TOOLTIP} position='right'>
-          {(props) => <Icon {...props} onClick={handleOnClick} className='css-toggler-quick-css-jump-icon' name='Pencil' />}
-        </Tooltip>}
+        {this.state.selectedItem === 'snippets' && <QuickCssIcon onClick={handleOnClick} className="css-toggler-quick-css-jump-icon" inSetting={true} />}
       </FormTitle>
     </Flex>;
   }
