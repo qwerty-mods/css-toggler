@@ -161,18 +161,22 @@ module.exports = class CSSToggler extends Plugin {
     const HeaderBarContainer = getModuleByDisplayName('HeaderBarContainer', false);
 
     this.inject('css-toggler-header-bar', HeaderBarContainer.prototype, 'render', (_, res) => {
-      const toolbar = res.props.toolbar;
+      if (this.settings.get('show-quick-header', true)) {
+        const toolbar = res.props.toolbar;
 
-      if (toolbar) {
-        const children = toolbar.props.children;
-        const index = children?.findIndex(i => i?.type?.displayName?.includes('UpdateButton'));
+        if (toolbar) {
+          const children = toolbar.props.children;
+          const index = children?.findIndex(i => i?.type?.displayName?.includes('UpdateButton'));
 
-        if (index > -1) {
-          children.splice(index, 0, <QuickCssIcon />);
+          if (index > -1) {
+            children.splice(index, 0, <QuickCssIcon />);
+          }
         }
-      }
 
-      return res;
+        return res;
+      } else {
+        return res;
+      }
     });
 
     const classes = getModule([ 'title', 'chatContent' ], false);

@@ -18,5 +18,7 @@
   "CSS_TOGGLER_SORT_SNIPPETS_ALPHABETICALLY_OPT": "Alphabetically",
   "CSS_TOGGLER_SORT_SNIPPETS_ALPHABETICALLY_OPT_DESC": "Sorted by snippet name in alphabetical order.",
   "CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_TITLE": "Prioritize my Snippets",
-  "CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_DESC": "Your snippets will always be placed at the top of the list."
+  "CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_DESC": "Your snippets will always be placed at the top of the list.",
+  "CSS_TOGGLER_SHOW_QUICKCSS_HEADERBAR": "Add QuickCSS Button to Top Bar",
+  "CSS_TOGGLER_SHOW_QUICKCSS_HEADERBAR_DESC": "Add a Jump to Quick CSS Button in channel header bar."
 }

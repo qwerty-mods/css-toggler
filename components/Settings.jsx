@@ -1,6 +1,6 @@
 const { React, Flux, getModuleByDisplayName, getModule, i18n: { Messages } } = require('powercord/webpack');
 const { Button, Flex, FormTitle, Icon, settings: { RadioGroup, SwitchItem } } = require('powercord/components');
-const { waitFor } = require('powercord/util');
+const { waitFor, getOwnerInstance } = require('powercord/util');
 
 const userStore = getModule([ 'getUser', 'getCurrentUser' ], false);
 const currentUserId = getModule([ 'initialize', 'getId' ], false).getId();
@@ -16,6 +16,7 @@ const TabBar = getModuleByDisplayName('TabBar', false);
 
 const { tabBar, tabBarItem } = getModule([ 'tabBar', 'tabBarItem' ], false);
 const { marginLeft8 } = getModule(["marginLeft8"], false);
+const classes = getModule([ 'title', 'chatContent' ], false);
 
 const breadcrumbClasses = getModule([ 'breadcrumbInactive', 'breadcrumbActive' ], false);
 
@@ -211,6 +212,22 @@ module.exports = class Settings extends React.Component {
         onChange={() => toggleSetting('sort-me')}
       >
         {Messages.CSS_TOGGLER_PRIORITIZE_MY_SNIPPETS_TITLE}
+      </SwitchItem>
+
+      <SwitchItem
+        note={Messages.CSS_TOGGLER_SHOW_QUICKCSS_HEADERBAR_DESC}
+        value={getSetting('show-quick-header', true)}
+        onChange={() => {
+          toggleSetting('show-quick-header');
+          
+          const toolbar = document.querySelector(`.${classes.title}`);
+
+          if (toolbar) {
+            getOwnerInstance(toolbar)?.forceUpdate?.();
+          }
+        }}
+      >
+        {Messages.CSS_TOGGLER_SHOW_QUICKCSS_HEADERBAR}
       </SwitchItem>
     </>;
   }
