@@ -10,6 +10,7 @@
   "CSS_TOGGLER_JUMP_TO_SNIPPET_TOOLTIP": "Click to jump to snippet",
   "CSS_TOGGLER_GO_TO_CSS_TOGGLER_TOOLTIP": "Click to go to CSS Toggler",
   "CSS_TOGGLER_GO_TO_QUICK_CSS_TOOLTIP": "Click to go to Quick CSS",
+  "CSS_TOGGLER_GO_TO_QUICK_CSS_OR_TOGGLER": "Click to go to (L) Quick CSS or (R) CSS Toggler",
   "CSS_TOGGLER_SORT_SNIPPETS_TITLE": "Sort Snippets",
   "CSS_TOGGLER_SORT_SNIPPETS_DEFAULT_OPT": "Default",
   "CSS_TOGGLER_SORT_SNIPPETS_DEFAULT_OPT_DESC": "Ordered as placed in Quick CSS.",
