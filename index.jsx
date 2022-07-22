@@ -160,25 +160,15 @@ module.exports = class CSSToggler extends Plugin {
   }
 
   async patchChannelHeader () {
-    const HeaderBarContainer = getModuleByDisplayName('HeaderBarContainer', false);
-
-    this.inject('css-toggler-header-bar', HeaderBarContainer.prototype, 'render', (_, res) => {
+    const HeaderBarContainer = await getModule(m=> m?.default?.displayName === 'HeaderBar');
+    this.inject('css-toggler-header-bar', HeaderBarContainer, 'default', (args, res) => {
       if (this.settings.get('show-quick-header', true)) {
-        const toolbar = res.props.toolbar;
-
-        if (toolbar) {
-          const children = toolbar.props.children;
-          const index = children?.findIndex(i => i?.type?.displayName?.includes('UpdateButton'));
-
-          if (index > -1) {
-            children.splice(index, 0, <QuickCssIcon main={this} />);
-          }
-        }
-
-        return res;
-      } else {
-        return res;
+        res.props.children.props.children[1].props.children.props.children[0].unshift(
+          <QuickCssIcon main={this} />
+        );
       }
+
+      return res;
     });
 
     const classes = getModule([ 'title', 'chatContent' ], false);

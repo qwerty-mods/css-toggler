@@ -149,7 +149,7 @@ module.exports = class Settings extends React.Component {
         const author1 = userStore.getUser(snippets[a].author);
         const author2 = userStore.getUser(snippets[b].author);
 
-        return author1.username.localeCompare(author2.username);
+        return author1?.username?.localeCompare(author2?.username);
       } else if (sortOption === 'alphabetically') {
         return snippets[a].details?.title.localeCompare(snippets[b].details?.title);
       }
