@@ -231,13 +231,13 @@ module.exports = class SnippetManager {
 
     const channel = channelStore.getChannel(message.channel_id);
 
-    let line1 = Messages[customSnippet ? 'CSS_TOGGLER_SNIPPET_FORMAT_LINE1' : 'POWERCORD_SNIPPET_LINE1'].format({ date: new Date() });
+    let line1 = Messages[customSnippet ? 'CSS_TOGGLER_SNIPPET_FORMAT_LINE1' : 'REPLUGGED_SNIPPET_LINE1'].format({ date: new Date() });
 
     if (channel && channel.id !== CSS_SNIPPETS) {
       line1 = line1.replace('css-snippets', `${channel.name} (${channel.id})`);
     }
 
-    const line2 = Messages.POWERCORD_SNIPPET_LINE2.format({
+    const line2 = Messages.REPLUGGED_SNIPPET_LINE2.format({
       authorTag: message.author.tag,
       authorId: message.author.id
     });
