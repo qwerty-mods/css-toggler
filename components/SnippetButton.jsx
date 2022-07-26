@@ -20,7 +20,7 @@ const SnippetButton = React.memo(props => {
   return (
     <div className='powercord-snippet-apply'>
       <Clickable onClick={handleOnClick}>
-        {props.applied ? Messages.CSS_TOGGLER_SNIPPET_REMOVE : Messages.POWERCORD_SNIPPET_APPLY}
+        {props.applied ? Messages.CSS_TOGGLER_SNIPPET_REMOVE : Messages.REPLUGGED_SNIPPET_APPLY}
       </Clickable>
     </div>
   );
