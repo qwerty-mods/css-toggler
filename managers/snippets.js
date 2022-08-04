@@ -82,7 +82,7 @@ module.exports = class SnippetManager {
       }
     }
 
-    FluxDispatcher.dirtyDispatch({
+    FluxDispatcher.dispatch({
       type: FluxActions.SNIPPETS_FETCH,
       snippets
     });
@@ -105,7 +105,7 @@ module.exports = class SnippetManager {
   jumpToSnippet (messageId, channelId) {
     let guildId;
 
-    FluxDispatcher.dirtyDispatch({ type: ActionTypes.LAYER_POP });
+    FluxDispatcher.dispatch({ type: ActionTypes.LAYER_POP });
 
     if (channelId) {
       const channel = channelStore.getChannel(channelId);
@@ -200,7 +200,7 @@ module.exports = class SnippetManager {
 
     delete options?.showToast;
 
-    FluxDispatcher.dirtyDispatch({
+    FluxDispatcher.dispatch({
       type: FluxActions.SNIPPET_REMOVE,
       options,
       id
@@ -290,7 +290,7 @@ module.exports = class SnippetManager {
         this.main.moduleManager._applySnippet(defaultArgs);
       }
 
-      // FluxDispatcher.dirtyDispatch({
+      // FluxDispatcher.dispatch({
       //   type: FluxActions.SNIPPET_ENABLE,
       //   id
       // });
@@ -308,7 +308,7 @@ module.exports = class SnippetManager {
     if (snippet && enabled) {
       await this.removeSnippet(id, { preserveSnippet: true });
 
-      FluxDispatcher.dirtyDispatch({
+      FluxDispatcher.dispatch({
         type: FluxActions.SNIPPET_DISABLE,
         id
       });

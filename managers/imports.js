@@ -57,7 +57,7 @@ module.exports = class ImportManager {
     const importMatches = this.main.moduleManager._quickCSS.matchAll(/@import url\(["']?([^"']+)["']?\)/g);
     const imports = [ ...(new Set([ ...importMatches ].map(([ , url ]) => url))) ];
 
-    FluxDispatcher.dirtyDispatch({
+    FluxDispatcher.dispatch({
       type: FluxActions.IMPORTS_FETCH,
       imports
     });
@@ -145,7 +145,7 @@ module.exports = class ImportManager {
 
     delete options?.showToast;
 
-    FluxDispatcher.dirtyDispatch({
+    FluxDispatcher.dispatch({
       type: FluxActions.IMPORT_REMOVE,
       options,
       url
@@ -174,7 +174,7 @@ module.exports = class ImportManager {
     if ($import && !enabled) {
       await this.addImport(url);
 
-      FluxDispatcher.dirtyDispatch({
+      FluxDispatcher.dispatch({
         type: FluxActions.IMPORT_ENABLE,
         url
       });
@@ -192,7 +192,7 @@ module.exports = class ImportManager {
     if ($import && enabled) {
       await this.removeImport(url, { preserveImport: true });
 
-      FluxDispatcher.dirtyDispatch({
+      FluxDispatcher.dispatch({
         type: FluxActions.IMPORT_DISABLE,
         url
       });
