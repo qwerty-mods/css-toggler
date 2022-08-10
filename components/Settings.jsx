@@ -114,10 +114,7 @@ module.exports = class Settings extends React.Component {
     const { selectedItem } = this.state;
     const settingsModule = getModule([ 'open', 'saveAccountChanges' ], false);
     const handleOnClick = async () => {
-      settingsModule.open('pc-moduleManager-themes');
-  
-      const quickCSSTab = await waitFor('.powercord-entities-manage-tabs [data-item-id="QUICK_CSS"]');
-      quickCSSTab.click();
+      settingsModule.open('pc-moduleManager-css');
     };
 
     return <Flex align={Flex.Align.CENTER} className={breadcrumbClasses.breadcrumbs}>
