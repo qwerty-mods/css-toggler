@@ -163,7 +163,7 @@ module.exports = class CSSToggler extends Plugin {
     const HeaderBarContainer = await getModule(m=> m?.default?.displayName === 'HeaderBar');
     this.inject('css-toggler-header-bar', HeaderBarContainer, 'default', (args, res) => {
       if (this.settings.get('show-quick-header', true)) {
-        res.props.children.props.children[1].props.children.props.children[0].unshift(
+        findInReactTree(res, i => i[i.length - 1]?.key === 'members').unshift(
           <QuickCssIcon main={this} />
         );
       }
