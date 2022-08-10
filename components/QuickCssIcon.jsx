@@ -35,10 +35,7 @@ const Tooltip = getModuleByDisplayName('Tooltip', false);
 module.exports = React.memo((compProps) => {
   const settingsModule = getModule([ 'open', 'saveAccountChanges' ], false);
   const handleOnClick = async () => {
-    settingsModule.open('pc-moduleManager-themes');
-
-    const quickCSSTab = await waitFor('.powercord-entities-manage-tabs [data-item-id="QUICK_CSS"]');
-    quickCSSTab.click();
+    settingsModule.open('pc-moduleManager-css');
   };
 
   if (compProps.inSetting) {
