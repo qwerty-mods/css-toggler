@@ -156,7 +156,7 @@ module.exports = class SnippetManager {
 
         quickCSS = quickCSS.replace(match[0], newSnippet);
 
-        await this.main.moduleManager._saveQuickCSS(quickCSS);
+        await this.main.moduleManager._applyQuickCSS(quickCSS);
       }
     } else {
       throw new Error(`Snippet '${id}' not found!`);
@@ -188,7 +188,7 @@ module.exports = class SnippetManager {
       if (snippetParts.header && snippetParts.content && snippetParts.footer) {
         quickCSS = quickCSS.replace(`${snippetParts.header}${snippetParts.content}${snippetParts.footer}`, '');
 
-        await this.main.moduleManager._saveQuickCSS(quickCSS);
+        await this.main.moduleManager._applyQuickCSS(quickCSS);
       } else {
         throw new Error(`Snippet '${id}' not found!`);
       }
@@ -261,7 +261,7 @@ module.exports = class SnippetManager {
 
     quickCSS += css;
 
-    this.main.moduleManager._saveQuickCSS(quickCSS);
+    this.main.moduleManager._applyQuickCSS(quickCSS);
   }
 
   async enableSnippet (id) {
