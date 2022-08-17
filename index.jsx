@@ -23,7 +23,7 @@ module.exports = class CSSToggler extends Plugin {
   }
 
   get moduleManager () {
-    return powercord.pluginManager.get('pc-moduleManager');
+    return powercord.api.moduleManager;
   }
 
   startPlugin () {
@@ -72,7 +72,7 @@ module.exports = class CSSToggler extends Plugin {
     const settingsModule = getModule([ 'open', 'saveAccountChanges' ], false);
 
     try {
-      const AsyncQuickCSS = require('../pc-moduleManager/components/manage/QuickCSS');
+      const AsyncQuickCSS = require('../../coremods/moduleManager/components/manage/QuickCSS');
       const ConnectedQuickCSS = await AsyncQuickCSS.type().props._provider();
       const QuickCSS = ConnectedQuickCSS.prototype.render.call({ memoizedGetStateFromStores: () => ({}) }).type;
 
@@ -98,7 +98,7 @@ module.exports = class CSSToggler extends Plugin {
   }
 
   async patchSettingsPage () {
-    const ErrorBoundary = require('../pc-settings/components/ErrorBoundary');
+    const ErrorBoundary = require('../../coremods/settings/components/ErrorBoundary');
 
     const FormSection = getModuleByDisplayName('FormSection', false);
     const SettingsView = await getModuleByDisplayName('SettingsView');

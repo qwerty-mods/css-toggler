@@ -2,7 +2,7 @@ const { React, Flux, i18n: { Messages } } = require('powercord/webpack');
 const { SwitchItem, SliderInput } = require('powercord/components/settings');
 const { AsyncComponent, Clickable, FormTitle, Tooltip, AdvancedScrollerThin, Icons: { Gear, Close } } = require('powercord/components');
 
-const CodeMirror = require('../../pc-moduleManager/components/manage/CodeMirror');
+const CodeMirror = require('../../../coremods/moduleManager/components/manage/CodeMirror');
 
 class CodeMirrorEditor extends React.PureComponent {
   constructor () {
